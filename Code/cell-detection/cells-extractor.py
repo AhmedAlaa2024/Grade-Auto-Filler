@@ -5,6 +5,22 @@ import cv2
 import imutils
 from imutils import contours
 
+def is_noisy(image):
+
+    # Convert image to HSV color space
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+    # Calculate histogram of saturation channel
+    s = cv2.calcHist([image], [1], None, [256], [0, 256])
+
+    # Calculate percentage of pixels with saturation >= p
+    p = 0.09
+    s_perc = np.sum(s[int(p * 255):-1]) / np.prod(image.shape[0:2])
+
+    # Percentage threshold; above: valid image, below: noise
+    s_thr = 0.5
+    return s_perc > s_thr
+
 ap = argparse.ArgumentParser()
 ap.add_argument("-i", "--image", required = True, help = "Path to the image to be scanned")
 args = vars(ap.parse_args())
@@ -57,10 +73,15 @@ img = four_point_transform(orig, screenCnt.reshape(4, 2) * ratio)
 # cv2.waitKey(0)
 
 gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+# applyMedian = is_noisy(img)
+# print(applyMedian)
+# if(applyMedian):
+#     gray = cv2.medianBlur(gray, 3)
 edges = cv2.Canny(gray,25,25,apertureSize = 3)
 cv2.imshow("Edged",cv2.resize(edges, (1200, 1600)))
 cv2.waitKey(0)
 
+thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
 binary = np.ones(img.shape)
 
 cv2.namedWindow("Hough_Window", cv2.WINDOW_NORMAL)
@@ -68,7 +89,21 @@ cv2.resizeWindow("Hough_Window", 900, 900)
 cv2.namedWindow("Hough-Binary_Window", cv2.WINDOW_NORMAL)
 cv2.resizeWindow("Hough-Binary_Window", 900, 900)
 
-lines = cv2.HoughLines(edges,1,np.pi/180,560)
+horizontal_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (25,1))
+detected_lines_H = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, horizontal_kernel, iterations=2)
+cntsH = cv2.findContours(detected_lines_H, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+cntsH = cntsH[0] if len(cntsH) == 2 else cntsH[1]
+binaryH = np.zeros(img.shape)
+for c in cntsH:
+    cv2.drawContours(binaryH, [c], -1, (255,255,255), 2)
+# cv2.namedWindow("H-Morph-Window", cv2.WINDOW_NORMAL)
+# cv2.resizeWindow("H-Morph-Window", 900, 900)
+# cv2.imshow("H-Morph-Window", binaryH)
+# cv2.waitKey(0)
+binaryH = binaryH[:,:,0]
+binaryH = binaryH.astype('uint8')
+
+lines = cv2.HoughLines(binaryH,1,np.pi/180,560)
 linesH = []
 for line in lines:
     for rho,theta in line:
@@ -76,9 +111,9 @@ for line in lines:
             linesH.append((rho, theta))
 linesH.sort()
 for rho,theta in linesH:
-    if(theta > 1.58):
+    if(theta > 1.58 or theta < 1.57):
         continue
-    print(rho)
+    # print(rho, theta)
     a = np.cos(theta)
     b = np.sin(theta)
     x0 = a*rho
@@ -94,7 +129,21 @@ for rho,theta in linesH:
     # cv2.imshow("Hough-Binary_Window",binary)
     # cv2.waitKey(0)
 
-lines = cv2.HoughLines(edges,1,np.pi/180,360)
+vertical_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1,25))
+detected_lines_V = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, vertical_kernel, iterations=2)
+cntsV = cv2.findContours(detected_lines_V, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+cntsV = cntsV[0] if len(cntsV) == 2 else cntsV[1]
+binaryV = np.zeros(img.shape)
+for c in cntsV:
+    cv2.drawContours(binaryV, [c], -1, (255,255,255), 2)
+# cv2.namedWindow("V-Morph-Window", cv2.WINDOW_NORMAL)
+# cv2.resizeWindow("V-Morph-Window", 900, 900)
+# cv2.imshow("V-Morph-Window", binaryV)
+# cv2.waitKey(0)
+binaryV = binaryV[:,:,0]
+binaryV = binaryV.astype('uint8')
+
+lines = cv2.HoughLines(binaryV,1,np.pi/180,360)
 linesV = []
 for line in lines:
     for rho,theta in line:
@@ -102,7 +151,7 @@ for line in lines:
             linesV.append((rho, theta))
 linesV.sort()
 for rho,theta in linesV:
-    print(rho)
+    # print(rho)
     a = np.cos(theta)      
     b = np.sin(theta)
     x0 = a*rho
