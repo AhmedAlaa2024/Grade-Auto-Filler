@@ -17,7 +17,10 @@ image = imutils.resize(image, height = 500)
 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 gray = cv2.GaussianBlur(gray, (5, 5), 0)
 edged = cv2.Canny(gray, 75, 200)
-
+edged[:,-1] = np.ones(edged.shape[0])
+edged[:,0] = np.ones(edged.shape[0])
+edged[-1,:] = np.ones(edged.shape[1])
+edged[0,:] = np.ones(edged.shape[1])
 # cv2.imshow("Image", image)
 # cv2.imshow("Edged", edged)
 # cv2.waitKey(0)
@@ -25,12 +28,17 @@ edged = cv2.Canny(gray, 75, 200)
 
 cnts = cv2.findContours(edged.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 cnts = imutils.grab_contours(cnts)
-cnts = sorted(cnts, key = cv2.contourArea, reverse = True)[:5]
+cnts = sorted(cnts, key = cv2.contourArea, reverse = True)[1:6]
 
+h,w = edged.shape
 for c in cnts:
 	peri = cv2.arcLength(c, True)
 	approx = cv2.approxPolyDP(c, 0.02 * peri, True)
 	if len(approx) == 4:
+		p1,p2,p3,p4 = approx
+		p1,p2,p3,p4 = p1[0],p2[0],p3[0],p4[0]
+		if (p1[0]<10 and p1[1]<10) or (w-p3[0]<10 and h-p3[1]<10) or (w-p2[0]<10 and p2[1]<10) or (p4[0]<10 and h-p4[1]<10):
+			continue
 		screenCnt = approx
 		break
 
@@ -49,11 +57,16 @@ img = four_point_transform(orig, screenCnt.reshape(4, 2) * ratio)
 # cv2.waitKey(0)
 
 gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-edges = cv2.Canny(gray,20,30,apertureSize = 3)
+edges = cv2.Canny(gray,25,25,apertureSize = 3)
 cv2.imshow("Edged",cv2.resize(edges, (1200, 1600)))
 cv2.waitKey(0)
 
 binary = np.ones(img.shape)
+
+cv2.namedWindow("Hough_Window", cv2.WINDOW_NORMAL)
+cv2.resizeWindow("Hough_Window", 900, 900)
+cv2.namedWindow("Hough-Binary_Window", cv2.WINDOW_NORMAL)
+cv2.resizeWindow("Hough-Binary_Window", 900, 900)
 
 lines = cv2.HoughLines(edges,1,np.pi/180,560)
 linesH = []
@@ -77,11 +90,7 @@ for rho,theta in linesH:
 
     cv2.line(img,(x1,y1),(x2,y2),(0,0,255),3)
     cv2.line(binary,(x1,y1),(x2,y2),(0,0,0),5)
-    # cv2.namedWindow("Hough_Window", cv2.WINDOW_NORMAL)
-    # cv2.resizeWindow("Hough_Window", 300, 700)
     # cv2.imshow("Hough_Window",img)
-    # cv2.namedWindow("Hough-Binary_Window", cv2.WINDOW_NORMAL)
-    # cv2.resizeWindow("Hough-Binary_Window", 300, 700)
     # cv2.imshow("Hough-Binary_Window",binary)
     # cv2.waitKey(0)
 
@@ -105,11 +114,7 @@ for rho,theta in linesV:
 
     cv2.line(img,(x1,y1),(x2,y2),(0,0,255),3)
     cv2.line(binary,(x1,y1),(x2,y2),(0,0,0),5)
-    # cv2.namedWindow("Hough_Window", cv2.WINDOW_NORMAL)
-    # cv2.resizeWindow("Hough_Window", 300, 700)
     # cv2.imshow("Hough_Window",img)
-    # cv2.namedWindow("Hough-Binary_Window", cv2.WINDOW_NORMAL)
-    # cv2.resizeWindow("Hough-Binary_Window", 300, 700)
     # cv2.imshow("Hough-Binary_Window",binary)
     # cv2.waitKey(0)
 
@@ -117,11 +122,7 @@ binary = np.float32(binary)
 binary = cv2.cvtColor(binary,cv2.COLOR_BGR2GRAY)
 binary[binary > 0.5] = 1
 binary[binary <= 0.5] = 0
-cv2.namedWindow("Hough_Window", cv2.WINDOW_NORMAL)
-cv2.resizeWindow("Hough_Window", 300, 700)
 cv2.imshow("Hough_Window",img)
-cv2.namedWindow("Hough-Binary_Window", cv2.WINDOW_NORMAL)
-cv2.resizeWindow("Hough-Binary_Window", 300, 700)
 cv2.imshow("Hough-Binary_Window",binary)
 cv2.waitKey(0)
 
