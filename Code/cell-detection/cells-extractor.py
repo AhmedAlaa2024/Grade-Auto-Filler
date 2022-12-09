@@ -89,7 +89,7 @@ cv2.resizeWindow("Hough_Window", 900, 900)
 cv2.namedWindow("Hough-Binary_Window", cv2.WINDOW_NORMAL)
 cv2.resizeWindow("Hough-Binary_Window", 900, 900)
 
-horizontal_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (25,1))
+horizontal_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (35,1))
 detected_lines_H = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, horizontal_kernel, iterations=2)
 cntsH = cv2.findContours(detected_lines_H, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 cntsH = cntsH[0] if len(cntsH) == 2 else cntsH[1]
@@ -103,7 +103,7 @@ for c in cntsH:
 binaryH = binaryH[:,:,0]
 binaryH = binaryH.astype('uint8')
 
-lines = cv2.HoughLines(binaryH,1,np.pi/180,560)
+lines = cv2.HoughLines(binaryH,1,np.pi/180,530)
 linesH = []
 for line in lines:
     for rho,theta in line:
@@ -188,7 +188,9 @@ for cell_points in cnts:
         p3 = p3[0]
         p4 = p4[0]
         # print(cell_points)
-        if p1[0] < 20 or img.shape[1]-p4[0] < 10 or p2[1]-p1[1] < 60 or p1[1] < 20 or p3[0]-p2[0] < 50:
+        h,w,c = img.shape
+        # very top cell || very bottom cell || very left cell || very right cell || min cell height || min cell width
+        if p1[0] < 20 or h-p3[1] < 20 or p1[1] < 20 or w-p4[0] < 10 or p2[1]-p1[1] < h*50/3532 or p3[0]-p2[0] < w*50/2638:
             continue
         cell = img[p1[1]:p2[1],p1[0]:p4[0]]
         cells.append(cell)
