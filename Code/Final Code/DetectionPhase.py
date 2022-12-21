@@ -1,3 +1,5 @@
+from commonfunctions import show_images
+import math
 import numpy as np
 import cv2
 import pytesseract
@@ -76,32 +78,20 @@ def detectRightMark(img):
     img: Preprocessed image given to detect if it was right mark => True
     '''
 
-    erodeKernel = np.ones((3, 3), np.uint8)
-    erosion = cv2.erode(img, erodeKernel, iterations=1)
+    linesP = cv2.HoughLinesP(img, 1, np.pi / 180, 50, None, 35, 10)
+    numOfLines = 0
 
-    kernel = np.array([
-        [0, 0, 0, 0, 0, 0, 1],
-        [0, 0, 0, 0, 0, 1, 0],
-        [0, 0, 0, 0, 1, 0, 0],
-        [0, 0, 0, 1, 0, 0, 0],
-        [0, 0, 1, 0, 0, 0, 0],
-        [0, 1, 0, 0, 0, 0, 0],
-        [1, 0, 0, 0, 0, 0, 0]
-    ], dtype=np.uint8)
+    if linesP is not None:
+        for i in range(0, len(linesP)):
+            (x1, y1, x2, y2) = linesP[i][0]
+            if x1 != x2:
+                angle = abs(math.atan((y2 - y1) / (x2 - x1))
+                            * (180 / np.pi))
 
-    diagonal = cv2.morphologyEx(erosion, cv2.MORPH_OPEN, kernel, iterations=1)
-    diagonalContours, _ = cv2.findContours(
-        diagonal, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    diagonalResult = len(diagonalContours)
+                if angle >= 20 and angle <= 45:
+                    numOfLines += 1
 
-    verticalKernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 15))
-    vertical = cv2.morphologyEx(
-        erosion, cv2.MORPH_OPEN, verticalKernel, iterations=1)
-    verticalContours, _ = cv2.findContours(
-        vertical, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    verticalResult = len(verticalContours)
-
-    return (verticalResult == 1 and diagonalResult == 1)
+    return (numOfLines > 0)
 
 # =============================================================================================
 
@@ -143,10 +133,15 @@ def detectBoxs(img):
     '''
     img: Preprocessed image given to detect if it was box => True
     '''
-    verticals = detectVerticalLines(img)
-    horizontals = detectHorizontalLines(img)
+    box = 0
+    contours, _ = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-    return (verticals == 2 and horizontals == 2)
+    for cnt in contours:
+        size = cv2.contourArea(cnt)
+        if size >= 1000:
+            box += 1
+
+    return box > 0
 
 # =============================================================================================
 
@@ -156,7 +151,7 @@ def detectQuestionMark(img):
     img: Preprocessed image given to detect if it was question mark => True
     '''
     detectedCircles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, 1, 80, param1=20,
-                                       param2=9, minRadius=10, maxRadius=17)
+                                       param2=9, minRadius=10, maxRadius=19)
 
     return detectedCircles is not None and len(detectedCircles) == 1
 
@@ -165,21 +160,44 @@ def detectQuestionMark(img):
 # =============================================================================================
 
 
+def enhanceCell(img):
+    '''
+    img: BGR cell that we want to enhance to be ready for the detection phase
+    '''
+
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    originalSize = img.shape
+
+    img = cv2.adaptiveThreshold(
+        img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 51, 10)
+
+    img = cv2.copyMakeBorder(img, 4, 4, 4, 4, cv2.BORDER_CONSTANT, value=255)
+
+    img = cv2.resize(img, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
+
+    # ignore number of pixels up, down, right, and left
+    img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY +
+                        cv2.THRESH_OTSU)[1][15:-14, 15:-14]
+
+    img = cv2.copyMakeBorder(img, 5, 5, 5, 5, cv2.BORDER_CONSTANT, value=255)
+
+    img = cv2.resize(img, (originalSize[1], originalSize[0]))
+
+    img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY +
+                        cv2.THRESH_OTSU)[1]
+
+    img = cv2.bitwise_not(img)
+
+    return cv2.erode(img, cv2.getStructuringElement(cv2.MORPH_RECT, (1, 3)), iterations=1)
+
+
 def detectCell(img):
     '''
     img: Original cell from the table
     return => Data of that cell after processing it
     '''
     # Preprocess the given image
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    gray = cv2.GaussianBlur(gray, (5, 5), 0)
-    img_bin = cv2.threshold(
-        gray, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
-    img_bin = cv2.bitwise_not(img_bin)
-    img_bin[0:7, :] = 0
-    img_bin[-7:, :] = 0
-    img_bin[:, 0:20] = 0
-    img_bin[:, -20:] = 0
+    img_bin = enhanceCell(img)
 
     # Try to detect right mark
     rightMark = detectRightMark(img_bin)
