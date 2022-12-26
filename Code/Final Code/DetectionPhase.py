@@ -14,7 +14,8 @@ pytesseract.pytesseract.tesseract_cmd = r'C:\Users\iiBesh00\AppData\Local\Tesser
 
 def getEnglishName(image):
     """
-    This function will handle the core OCR processing of getting english name.
+		image: Original image
+    return => The english name in that image
     """
     text = pytesseract.image_to_string(image, lang='eng')
     return text.split('\n')[0]
@@ -24,7 +25,8 @@ def getEnglishName(image):
 
 def getArabicName(image):
     """
-    This function will handle the core OCR processing of getting arabic name.
+		image: Original image
+    return => The arabic name in that image
     """
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     threshImg = cv2.threshold(
@@ -37,7 +39,8 @@ def getArabicName(image):
 
 def getCode(image):
     """
-    This function will handle the core OCR processing of getting id number.
+		image: Original image
+    return => The id number in that image
     """
     text = pytesseract.image_to_string(image, config='digits')
     return text.split('\n')[0]
@@ -76,6 +79,7 @@ def detectNumericValues(img):
 def detectRightMark(img):
     '''
     img: Preprocessed image given to detect if it was right mark => True
+		return => True if the cell was right mark, false otherwise
     '''
 
     linesP = cv2.HoughLinesP(img, 1, np.pi / 180, 50, None, 35, 10)
@@ -88,7 +92,7 @@ def detectRightMark(img):
                 angle = abs(math.atan((y2 - y1) / (x2 - x1))
                             * (180 / np.pi))
 
-                if angle >= 20 and angle <= 45:
+                if angle >= 20 and angle <= 44:
                     numOfLines += 1
 
     return (numOfLines > 0)
@@ -99,11 +103,15 @@ def detectRightMark(img):
 def detectVerticalLines(img):
     '''
     img: Preprocessed image given to detect if it was vertical line => number of lines
+		return => Number of vertical lines if any exists
     '''
 
-    verticalKernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 15))
+    verticalKernel = cv2.getStructuringElement(
+        cv2.MORPH_RECT, (1, img.shape[0]//4))
+
     vertical = cv2.morphologyEx(
         img, cv2.MORPH_OPEN, verticalKernel, iterations=1)
+
     verticalContours, _ = cv2.findContours(
         vertical, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -115,9 +123,12 @@ def detectVerticalLines(img):
 def detectHorizontalLines(img):
     '''
     img: Preprocessed image given to detect if it was horizontal line => number of lines
+		return => Number of horizontal lines if any exists
     '''
 
-    horizontalKernel = cv2.getStructuringElement(cv2.MORPH_RECT, (15, 1))
+    horizontalKernel = cv2.getStructuringElement(
+        cv2.MORPH_RECT, (img.shape[1]//4, 1))
+
     horizontal = cv2.morphologyEx(
         img, cv2.MORPH_OPEN, horizontalKernel, iterations=1)
 
@@ -129,9 +140,12 @@ def detectHorizontalLines(img):
 # =============================================================================================
 
 
-def detectBoxs(img):
+def detectBoxs(img, verticalLines, horizontalLines):
     '''
     img: Preprocessed image given to detect if it was box => True
+		verticalLines: Number of vertical lines in this cell
+		horizontalLines: Number of horizontal lines in this cell
+		return => True if the cell was a box, false otherwise
     '''
     box = 0
     contours, _ = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -141,7 +155,7 @@ def detectBoxs(img):
         if size >= 1000:
             box += 1
 
-    return box > 0
+    return box > 0 and verticalLines <= 2 and horizontalLines <= 2
 
 # =============================================================================================
 
@@ -149,9 +163,10 @@ def detectBoxs(img):
 def detectQuestionMark(img):
     '''
     img: Preprocessed image given to detect if it was question mark => True
+		return => True if the cell was question mark, false otherwise
     '''
     detectedCircles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, 1, 80, param1=20,
-                                       param2=9, minRadius=10, maxRadius=19)
+                                       param2=9, minRadius=7, maxRadius=19)
 
     return detectedCircles is not None and len(detectedCircles) == 1
 
@@ -162,7 +177,8 @@ def detectQuestionMark(img):
 
 def enhanceCell(img):
     '''
-    img: BGR cell that we want to enhance to be ready for the detection phase
+    img: BGR cell that we want to enhance
+		return => Enhanced image that is ready for detection phase
     '''
 
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -188,7 +204,9 @@ def enhanceCell(img):
 
     img = cv2.bitwise_not(img)
 
-    return cv2.erode(img, cv2.getStructuringElement(cv2.MORPH_RECT, (1, 3)), iterations=1)
+    # return cv2.erode(img, cv2.getStructuringElement(cv2.MORPH_RECT, (1, 3)), iterations=1)
+    return cv2.morphologyEx(
+        img, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3)), iterations=1)
 
 
 def detectCell(img):
@@ -204,8 +222,12 @@ def detectCell(img):
     if rightMark:
         return 5
 
+    # Get the number of horizontal and vertical lines
+    verticalLines = detectVerticalLines(img_bin)
+    horizontalLines = detectHorizontalLines(img_bin)
+
     # Try to detect boxes
-    box = detectBoxs(img_bin)
+    box = detectBoxs(img_bin, verticalLines, horizontalLines)
     if box:
         return 0
 
@@ -215,13 +237,11 @@ def detectCell(img):
         return -1
 
     # Try to detect minus
-    horizontalLines = detectHorizontalLines(img_bin)
     if horizontalLines == 1:
         return 0
     elif horizontalLines != 0:
         return (5 - horizontalLines)
 
-    verticalLines = detectVerticalLines(img_bin)
     if verticalLines != 0:
         return verticalLines
 
