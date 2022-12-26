@@ -10,8 +10,6 @@ pytesseract.pytesseract.tesseract_cmd = r'C:\Users\iiBesh00\AppData\Local\Tesser
 # =============================================================================================
 # Detect names, codes and numeric values usign OCR
 # =============================================================================================
-
-
 def getEnglishName(image):
 	"""
 	image: Original image
@@ -21,7 +19,6 @@ def getEnglishName(image):
 	return text.split('\n')[0]
 
 # =============================================================================================
-
 
 def getArabicName(image):
 	"""
@@ -36,19 +33,19 @@ def getArabicName(image):
 
 # =============================================================================================
 
-
 def getCode(image):
 	"""
 	image: Original image
 	return => The id number in that image
 	"""
-	img = enhanceCell(image)
-	img = cv2.dilate(img, cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3)))
-	text = pytesseract.image_to_string(img, config='digits')
+	if image.shape[1] > 50:
+		image = enhanceCell(image)
+		image = cv2.dilate(image, cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3)))
+	
+	text = pytesseract.image_to_string(image, config='digits')
 	return text.split('\n')[0]
 
 # =============================================================================================
-
 
 def detectNumericValues(img):
 	'''
