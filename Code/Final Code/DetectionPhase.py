@@ -42,7 +42,9 @@ def getCode(image):
 	image: Original image
 	return => The id number in that image
 	"""
-	text = pytesseract.image_to_string(image, config='digits')
+	img = enhanceCell(image)
+	img = cv2.dilate(img, cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3)))
+	text = pytesseract.image_to_string(img, config='digits')
 	return text.split('\n')[0]
 
 # =============================================================================================
@@ -166,9 +168,10 @@ def detectBoxs(img, verticalLines, horizontalLines):
 # =============================================================================================
 
 
-def detectQuestionMark(img, horizontalLines):
+def detectQuestionMark(img, verticalLines, horizontalLines):
 	'''
 	img: Preprocessed image given to detect if it was question mark => True
+	verticalLines: Number of vertical lines in this cell
 	horizontalLines: Number of horizontal lines in this cell
 	return => True if the cell was question mark, false otherwise
 	'''
@@ -177,7 +180,8 @@ def detectQuestionMark(img, horizontalLines):
 
 	return (detectedCircles is not None
 					and len(detectedCircles) == 1
-					and horizontalLines == 0)
+					and horizontalLines == 0
+					and verticalLines <= 3)
 
 # =============================================================================================
 # Detect Cells
@@ -236,7 +240,7 @@ def detectCell(img):
 		return 0
 
 	# Try to detect question mark
-	questionMark = detectQuestionMark(img_bin, horizontalLines)
+	questionMark = detectQuestionMark(img_bin, verticalLines, horizontalLines)
 	if questionMark:
 		return -1
 
@@ -262,7 +266,7 @@ def detectCell(img):
 # =============================================================================================
 
 
-def detectionPhase(images):
+def detectionPhase(images, names=False):
 	'''
 	images: Array of cells ready to be detected
 	return => Data ready to be exported to excel sheet
@@ -279,18 +283,23 @@ def detectionPhase(images):
 		secondCell = detectCell(images[i+1])
 		firstCell = detectNumericValues(images[i+2])
 
-		englishName = getEnglishName(images[i+3])
-		studentName = getArabicName(images[i+4])
 		code = getCode(images[i+5])
 
 		data = {
 			"Code": code,
-			"Student Name": studentName,
-			"English Name": englishName,
 			"1": firstCell,
 			"2": secondCell,
 			"3": thirdCell
 		}
+		if names:
+			data["Student Name"] = getArabicName(images[i+4])
+			data["English Name"] = getEnglishName(images[i+3])
+		
 		finalData.append(data)
 
-	return finalData
+	columnTitles = ["Code", "1", "2", "3"]
+	if names:
+		columnTitles.insert(1, "Student Name")
+		columnTitles.insert(2, "English Name")
+	
+	return columnTitles, finalData
