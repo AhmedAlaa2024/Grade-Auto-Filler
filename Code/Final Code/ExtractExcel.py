@@ -3,12 +3,14 @@ import xlsxwriter
 
 def generate_excel(workbook_name, worksheet_name, headers_list, data, names=False):
 	"""
-	Function used to create the excel sheet from the data extracted from the table
-
-	workbook_name: File name
-	worksheet_name: Sheet name
-	headers_list: List of names of the first row [header]
-	data: List of data used to fill the excel sheet
+		Function used to create the excel sheet from the data extracted from the table
+	
+		Arguments:
+			workbook_name: File name
+			worksheet_name: Sheet name
+			headers_list: List of names of the first row [header]
+			data: List of data used to fill the excel sheet
+			names: Boolean to determine if we are going to show english and arabic names or not
 	"""
 	# Creating workbook
 	workbook = xlsxwriter.Workbook(workbook_name + ".xlsx")

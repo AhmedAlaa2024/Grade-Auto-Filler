@@ -12,8 +12,12 @@ pytesseract.pytesseract.tesseract_cmd = r'C:\Users\iiBesh00\AppData\Local\Tesser
 # =============================================================================================
 def getEnglishName(image):
 	"""
-	image: Original image
-	return => The english name in that image
+		Function used to get the english name from the cell
+		
+		Arguments:
+			image: Original image
+		Returns:
+			The english name in that image
 	"""
 	text = pytesseract.image_to_string(image, lang='eng')
 	return text.split('\n')[0]
@@ -22,8 +26,12 @@ def getEnglishName(image):
 
 def getArabicName(image):
 	"""
-	image: Original image
-	return => The arabic name in that image
+		Function used to get the arabic name from the cell
+		
+		Arguments:
+			image: Original image
+		Returns:
+			The arabic name in that image
 	"""
 	gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 	threshImg = cv2.threshold(
@@ -35,23 +43,31 @@ def getArabicName(image):
 
 def getCode(image):
 	"""
-	image: Original image
-	return => The id number in that image
+		Function used to get the code id from the cell
+		
+		Arguments:
+			image: Original image
+		Returns:
+			The id number in that image
 	"""
 	if image.shape[1] > 50:
 		image = enhanceCell(image)
 		image = cv2.dilate(image, cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3)))
-	
+
 	text = pytesseract.image_to_string(image, config='digits')
 	return text.split('\n')[0]
 
 # =============================================================================================
 
 def detectNumericValues(img):
-	'''
-	img: Original image
-	return => The number in that image
-	'''
+	"""
+		Function used to get the numeric value from the cell
+		
+		Arguments:
+			img: Original image
+		Returns:
+			The number in that image
+	"""
 	gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 	gray = cv2.resize(gray, (600, 400))
 	gray = cv2.GaussianBlur(gray, (5, 5), 0)
@@ -74,14 +90,15 @@ def detectNumericValues(img):
 # =============================================================================================
 # Detect Symbols using vanela image processing
 # =============================================================================================
-
-
 def detectRightMark(img):
-	'''
-	img: Preprocessed image given to detect if it was right mark => True
-	return => True if the cell was right mark, false otherwise
-	'''
-
+	"""
+		Function used to detect right marks from cells
+		
+		Arguments:
+			img: Processed image
+		Returns:
+			True if the cell was right mark, false otherwise
+	"""
 	linesP = cv2.HoughLinesP(img, 1, np.pi / 180, 50, None, 35, 10)
 	numOfLines = 0
 
@@ -98,13 +115,15 @@ def detectRightMark(img):
 
 # =============================================================================================
 
-
 def detectVerticalLines(img):
-	'''
-	img: Preprocessed image given to detect if it was vertical line => number of lines
-	return => Number of vertical lines if any exists
-	'''
-
+	"""
+		Function used to get the number of vertical lines in that cell
+		
+		Arguments:
+			img: Processed image
+		Returns:
+			Number of vertical lines if any exists
+	"""
 	verticalKernel = cv2.getStructuringElement(
 			cv2.MORPH_RECT, (1, img.shape[0]//4))
 
@@ -121,13 +140,15 @@ def detectVerticalLines(img):
 
 # =============================================================================================
 
-
 def detectHorizontalLines(img):
-	'''
-	img: Preprocessed image given to detect if it was horizontal line => number of lines
-	return => Number of horizontal lines if any exists
-	'''
-
+	"""
+		Function used to get the number of horizontal lines in that cell
+		
+		Arguments:
+			img: Processed image
+		Returns:
+			Number of horizontal lines if any exists
+	"""
 	horizontalKernel = cv2.getStructuringElement(
 			cv2.MORPH_RECT, (img.shape[1]//4, 1))
 
@@ -144,14 +165,17 @@ def detectHorizontalLines(img):
 
 # =============================================================================================
 
-
 def detectBoxs(img, verticalLines, horizontalLines):
-	'''
-	img: Preprocessed image given to detect if it was box => True
-	verticalLines: Number of vertical lines in this cell
-	horizontalLines: Number of horizontal lines in this cell
-	return => True if the cell was a box, false otherwise
-	'''
+	"""
+		Function used to detect boxes from cells
+		
+		Arguments:
+			img: Processed image
+			verticalLines: Number of vertical lines in this cell
+			horizontalLines: Number of horizontal lines in this cell
+		Returns:
+			True if the cell was a box, false otherwise
+	"""
 	box = 0
 	contours, _ = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -160,18 +184,23 @@ def detectBoxs(img, verticalLines, horizontalLines):
 		if size >= 1000:
 			box += 1
 
-	return box > 0 and verticalLines <= 2 and horizontalLines <= 2
+	return (box > 0 and
+					(verticalLines <= 2 and verticalLines > 0) and
+					(horizontalLines <= 2 and horizontalLines > 0))
 
 # =============================================================================================
 
-
 def detectQuestionMark(img, verticalLines, horizontalLines):
-	'''
-	img: Preprocessed image given to detect if it was question mark => True
-	verticalLines: Number of vertical lines in this cell
-	horizontalLines: Number of horizontal lines in this cell
-	return => True if the cell was question mark, false otherwise
-	'''
+	"""
+		Function used to detect question marks from cells
+		
+		Arguments:
+			img: Processed image
+			verticalLines: Number of vertical lines in this cell
+			horizontalLines: Number of horizontal lines in this cell
+		Returns:
+			True if the cell was question mark, false otherwise
+	"""
 	detectedCircles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, 1, 80, param1=20,
 			param2=9, minRadius=7, maxRadius=19)
 
@@ -183,13 +212,18 @@ def detectQuestionMark(img, verticalLines, horizontalLines):
 # =============================================================================================
 # Detect Cells
 # =============================================================================================
-
-
 def enhanceCell(img):
-	'''
-	img: BGR cell that we want to enhance
-	return => Enhanced image that is ready for detection phase
-	'''
+	"""
+		Function used to enhance the image of the cell before processing it
+		
+		Arguments:
+			img: BGR cell that we want to enhance
+		Returns:
+			Enhanced image that is ready for detection phase
+	"""
+	lowRes = img.shape[1] < 100
+	if lowRes:
+		img = cv2.resize(img, (220, 100))
 
 	img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 	originalSize = img.shape
@@ -202,8 +236,12 @@ def enhanceCell(img):
 	img = cv2.resize(img, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
 
 	# ignore number of pixels up, down, right, and left
-	img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY +
-											cv2.THRESH_OTSU)[1][15:-14, 15:-14]
+	if lowRes:
+		img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY +
+														cv2.THRESH_OTSU)[1][30:-30, 30:-30]
+	else:
+		img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY +
+												cv2.THRESH_OTSU)[1][15:-14, 15:-14]
 
 	img = cv2.copyMakeBorder(img, 5, 5, 5, 5, cv2.BORDER_CONSTANT, value=255)
 
@@ -220,10 +258,14 @@ def enhanceCell(img):
 
 
 def detectCell(img):
-	'''
-	img: Original cell from the table
-	return => Data of that cell after processing it
-	'''
+	"""
+		Function used to detect the cells of the image and extract the data from it
+		
+		Arguments:
+			img: Original cell from the table
+		Returns:
+			Data of that cell after processing it
+	"""
 	# Preprocess the given image
 	img_bin = enhanceCell(img)
 
@@ -261,13 +303,16 @@ def detectCell(img):
 # =============================================================================================
 # Detectin phase function
 # =============================================================================================
-
-
 def detectionPhase(images, names=False):
-	'''
-	images: Array of cells ready to be detected
-	return => Data ready to be exported to excel sheet
-	'''
+	"""
+		Function used to extract the data from a row of cells
+		
+		Arguments:
+			images: Array of cells ready to be detected
+			names: Boolean to determine if we are going to extract english and arabic names or not
+		Returns:
+			Data ready to be exported to excel sheet
+	"""
 
 	# images[i] => 3 | images[i+1] => 2 | images[i+2] => 1
 	# images[i+3] => English Name
