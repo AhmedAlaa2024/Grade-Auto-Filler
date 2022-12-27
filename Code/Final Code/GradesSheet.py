@@ -5,7 +5,7 @@ from ExtractExcel import generate_excel
 # =============================================================================================
 # Extract cells from the table
 # =============================================================================================
-cellImages = main('../Samples/Samples/6.jpg')
+cellImages = main("../Samples/Samples/15.jpg")
 
 # =============================================================================================
 # Extract the data from the cell images

@@ -99,7 +99,7 @@ def detectRightMark(img):
 		Returns:
 			True if the cell was right mark, false otherwise
 	"""
-	linesP = cv2.HoughLinesP(img, 1, np.pi / 180, 50, None, 35, 10)
+	linesP = cv2.HoughLinesP(img, 1, np.pi / 180, 80, None, 35, 10)
 	numOfLines = 0
 
 	if linesP is not None:
@@ -150,7 +150,7 @@ def detectHorizontalLines(img):
 			Number of horizontal lines if any exists
 	"""
 	horizontalKernel = cv2.getStructuringElement(
-			cv2.MORPH_RECT, (img.shape[1]//4, 1))
+			cv2.MORPH_RECT, ((img.shape[1]//4)-5, 1))
 
 	horizontal = cv2.morphologyEx(
 			img, cv2.MORPH_OPEN, horizontalKernel, iterations=1)
@@ -181,7 +181,7 @@ def detectBoxs(img, verticalLines, horizontalLines):
 
 	for cnt in contours:
 		size = cv2.contourArea(cnt)
-		if size >= 1000:
+		if size >= 1300:
 			box += 1
 
 	return (box > 0 and
@@ -201,12 +201,13 @@ def detectQuestionMark(img, verticalLines, horizontalLines):
 		Returns:
 			True if the cell was question mark, false otherwise
 	"""
-	detectedCircles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, 1, 80, param1=20,
-			param2=9, minRadius=7, maxRadius=19)
+	detectedCircles = cv2.HoughCircles(img, cv2.HOUGH_GRADIENT, 1, 80,
+			param1=20, param2=9,
+			minRadius=7, maxRadius=19)
 
 	return (detectedCircles is not None
 					and len(detectedCircles) == 1
-					and horizontalLines == 0
+					and horizontalLines <= 1
 					and verticalLines <= 3)
 
 # =============================================================================================
@@ -238,10 +239,10 @@ def enhanceCell(img):
 	# ignore number of pixels up, down, right, and left
 	if lowRes:
 		img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY +
-														cv2.THRESH_OTSU)[1][30:-30, 30:-30]
+														cv2.THRESH_OTSU)[1][15:-15, 30:-30]
 	else:
 		img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY +
-												cv2.THRESH_OTSU)[1][15:-14, 15:-14]
+												cv2.THRESH_OTSU)[1][15:-15, 15:-15]
 
 	img = cv2.copyMakeBorder(img, 5, 5, 5, 5, cv2.BORDER_CONSTANT, value=255)
 
@@ -252,7 +253,6 @@ def enhanceCell(img):
 
 	img = cv2.bitwise_not(img)
 
-	# return cv2.erode(img, cv2.getStructuringElement(cv2.MORPH_RECT, (1, 3)), iterations=1)
 	return cv2.morphologyEx(
 			img, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3)), iterations=1)
 
@@ -269,6 +269,11 @@ def detectCell(img):
 	# Preprocess the given image
 	img_bin = enhanceCell(img)
 
+	# Try to detect right mark
+	rightMark = detectRightMark(img_bin)
+	if rightMark:
+		return 5
+
 	# Get the number of horizontal and vertical lines
 	verticalLines = detectVerticalLines(img_bin)
 	horizontalLines = detectHorizontalLines(img_bin)
@@ -282,11 +287,6 @@ def detectCell(img):
 	questionMark = detectQuestionMark(img_bin, verticalLines, horizontalLines)
 	if questionMark:
 		return -1
-
-	# Try to detect right mark
-	rightMark = detectRightMark(img_bin)
-	if rightMark:
-		return 5
 
 	# Try to detect minus
 	if horizontalLines == 1:
