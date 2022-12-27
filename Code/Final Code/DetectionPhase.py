@@ -1,4 +1,3 @@
-from commonfunctions import show_images
 import math
 import numpy as np
 import cv2
@@ -303,13 +302,14 @@ def detectCell(img):
 # =============================================================================================
 # Detectin phase function
 # =============================================================================================
-def detectionPhase(images, names=False):
+def detectionPhase(images, names=False, OCR=True):
 	"""
 		Function used to extract the data from a row of cells
 		
 		Arguments:
 			images: Array of cells ready to be detected
 			names: Boolean to determine if we are going to extract english and arabic names or not
+			OCR: Boolean to determine if we are going to use already-made OCR or features + classifier
 		Returns:
 			Data ready to be exported to excel sheet
 	"""
@@ -323,9 +323,12 @@ def detectionPhase(images, names=False):
 	for i in range(0, len(images), 6):
 		thirdCell = detectCell(images[i])
 		secondCell = detectCell(images[i+1])
-		firstCell = detectNumericValues(images[i+2])
 
-		code = getCode(images[i+5])
+		if OCR:
+			firstCell = detectNumericValues(images[i+2])
+			code = getCode(images[i+5])
+		else:
+			pass
 
 		data = {
 			"Code": code,

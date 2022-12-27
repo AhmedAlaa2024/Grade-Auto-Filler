@@ -10,9 +10,13 @@ cellImages = main("../Samples/Samples/15.jpg")
 # =============================================================================================
 # Extract the data from the cell images
 # =============================================================================================
-getNames = False
 
-columnTitles, data = detectionPhase(cellImages, getNames)
+# True if we want to extract names with grades
+getNames = False
+# True if we want to use already-made OCR, False if we want to use features + classifier
+OCR = True
+
+columnTitles, data = detectionPhase(cellImages, getNames, OCR)
 
 # =============================================================================================
 # Prepare the excel sheet
