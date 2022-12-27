@@ -5,7 +5,8 @@ from ExtractExcel import generate_excel
 # =============================================================================================
 # Extract cells from the table
 # =============================================================================================
-cellImages = main("../Samples/Samples/15.jpg")
+SampleNumber = 15
+cellImages = main("../Samples/Samples/{}.jpg".format(SampleNumber))
 
 # =============================================================================================
 # Extract the data from the cell images
@@ -21,6 +22,6 @@ columnTitles, data = detectionPhase(cellImages, getNames, OCR)
 # =============================================================================================
 # Prepare the excel sheet
 # =============================================================================================
-generate_excel("Yarab", "FirstSheet", columnTitles, data, getNames)
+generate_excel("Result_{}".format(SampleNumber), "FirstSheet", columnTitles, data, getNames)
 
 print("Happy Ending")
