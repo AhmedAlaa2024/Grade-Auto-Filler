@@ -16,8 +16,10 @@ cellImages = main("../Samples/Samples/{}.jpg".format(SampleNumber))
 getNames = False
 # True if we want to use already-made OCR, False if we want to use features + classifier
 OCR = True
+# Method that we want to use to detect symbols
+method = "HOG"
 
-columnTitles, data = detectionPhase(cellImages, getNames, OCR)
+columnTitles, data = detectionPhase(cellImages, getNames, OCR, method)
 
 # =============================================================================================
 # Prepare the excel sheet

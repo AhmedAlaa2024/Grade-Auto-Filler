@@ -3,9 +3,13 @@ import numpy as np
 import cv2
 import pytesseract
 import os
+import joblib
+from skimage.feature import hog
+from commonfunctions import *
+
 os.environ["TESSDATA_PREFIX"] = r'C:\Users\iiBesh00\AppData\Local\Tesseract-OCR\tessdata'
 pytesseract.pytesseract.tesseract_cmd = r'C:\Users\iiBesh00\AppData\Local\Tesseract-OCR\tesseract.exe'
-
+HOG = joblib.load("../../Training/HOG Model/HOG_Model.npy")
 # =============================================================================================
 # Detect names, codes and numeric values usign OCR
 # =============================================================================================
@@ -58,9 +62,9 @@ def getCode(image):
 
 # =============================================================================================
 
-def detectNumericValues(img):
+def detectNumericValuesOCR(img):
 	"""
-		Function used to get the numeric value from the cell
+		Function used to get the numeric value from the cell using ready-made OCR
 		
 		Arguments:
 			img: Original image
@@ -256,53 +260,92 @@ def enhanceCell(img):
 			img, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3)), iterations=1)
 
 
-def detectCell(img):
+def detectCell(img, method="HOG"):
 	"""
 		Function used to detect the cells of the image and extract the data from it
 		
 		Arguments:
 			img: Original cell from the table
+			method: The method that we want to use between [HOG, Vanela]
 		Returns:
 			Data of that cell after processing it
 	"""
-	# Preprocess the given image
-	img_bin = enhanceCell(img)
+	if method == "HOG":
+		image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+		resized_image = cv2.resize(image, (128, 256))
+		
+		# get the HOG descriptor for the test image
+		(hog_desc, hog_image) = hog(resized_image, orientations=9, pixels_per_cell=(8, 8),
+				cells_per_block=(2, 2), transform_sqrt=True, block_norm='L2-Hys', visualize=True)
 
-	# Try to detect right mark
-	rightMark = detectRightMark(img_bin)
-	if rightMark:
-		return 5
+		# prediction
+		pred = HOG.predict(hog_desc.reshape(1, -1))[0]
 
-	# Get the number of horizontal and vertical lines
-	verticalLines = detectVerticalLines(img_bin)
-	horizontalLines = detectHorizontalLines(img_bin)
+		if pred.title() == "Correct":
+			return 5
+		elif pred.title() == "Box":
+			return 0
+		elif pred.title() == "Empty":
+			return -2
+		elif pred.title() == "Question":
+			return -1
+		elif pred.title() == "Vertical1":
+			return 1
+		elif pred.title() == "Vertical2":
+			return 2
+		elif pred.title() == "Vertical3":
+			return 3
+		elif pred.title() == "Vertical4":
+			return 4
+		elif pred.title() == "Vertical5":
+			return 5
+		elif pred.title() == "Horizontal1":
+			return 0
+		elif pred.title() == "Horizontal2":
+			return 3
+		elif pred.title() == "Horizontal3":
+			return 2
+		elif pred.title() == "Horizontal4":
+			return 1
+	else:
+		# Preprocess the given image
+		img_bin = enhanceCell(img)
 
-	# Try to detect boxes
-	box = detectBoxs(img_bin, verticalLines, horizontalLines)
-	if box:
-		return 0
+		# Try to detect right mark
+		rightMark = detectRightMark(img_bin)
+		if rightMark:
+			return 5
 
-	# Try to detect question mark
-	questionMark = detectQuestionMark(img_bin, verticalLines, horizontalLines)
-	if questionMark:
-		return -1
+		# Get the number of horizontal and vertical lines
+		verticalLines = detectVerticalLines(img_bin)
+		horizontalLines = detectHorizontalLines(img_bin)
 
-	# Try to detect minus
-	if horizontalLines == 1:
-		return 0
-	elif horizontalLines != 0:
-		return (5 - horizontalLines)
+		# Try to detect boxes
+		box = detectBoxs(img_bin, verticalLines, horizontalLines)
+		if box:
+			return 0
 
-	if verticalLines != 0:
-		return verticalLines
+		# Try to detect question mark
+		questionMark = detectQuestionMark(img_bin, verticalLines, horizontalLines)
+		if questionMark:
+			return -1
 
-	# Else => Empty cell
-	return -2
+		# Try to detect minus
+		if horizontalLines == 1:
+			return 0
+		elif horizontalLines != 0:
+			return (5 - horizontalLines)
+
+		if verticalLines != 0:
+			return verticalLines
+
+		# Else => Empty cell
+		return -2
 
 # =============================================================================================
 # Detectin phase function
 # =============================================================================================
-def detectionPhase(images, names=False, OCR=True):
+def detectionPhase(images, names=False, OCR=True, method="HOG"):
 	"""
 		Function used to extract the data from a row of cells
 		
@@ -310,6 +353,7 @@ def detectionPhase(images, names=False, OCR=True):
 			images: Array of cells ready to be detected
 			names: Boolean to determine if we are going to extract english and arabic names or not
 			OCR: Boolean to determine if we are going to use already-made OCR or features + classifier
+			method: The method that we want to use to detect symbols [HOG, Vanela]
 		Returns:
 			Data ready to be exported to excel sheet
 	"""
@@ -321,11 +365,11 @@ def detectionPhase(images, names=False, OCR=True):
 
 	finalData = []
 	for i in range(0, len(images), 6):
-		thirdCell = detectCell(images[i])
-		secondCell = detectCell(images[i+1])
+		thirdCell = detectCell(images[i], method)
+		secondCell = detectCell(images[i+1], method)
 
 		if OCR:
-			firstCell = detectNumericValues(images[i+2])
+			firstCell = detectNumericValuesOCR(images[i+2])
 			code = getCode(images[i+5])
 		else:
 			pass
