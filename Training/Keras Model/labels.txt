@@ -1,0 +1,13 @@
+0 box
+1 question
+2 empty
+3 vertical1
+4 vertical2
+5 vertical3
+6 vertical4
+7 vertical5
+8 horizontal1
+9 horizontal2
+10 horizontal3
+11 horizontal4
+12 correct
