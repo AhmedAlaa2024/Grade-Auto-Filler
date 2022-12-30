@@ -3,7 +3,7 @@ from sklearn.neighbors import KNeighborsClassifier
 import joblib
 import cv2
 
-knn = joblib.load(".\models\knn_model.pkl")
+knn = joblib.load(".\models\knn_model_digits.pkl")
 # extract the features from the image to predict
 def feature_extraction(image):
     return hog(image, orientations=9, pixels_per_cell=(8, 8),cells_per_block=(2, 2), transform_sqrt=True, block_norm='L2-Hys')
