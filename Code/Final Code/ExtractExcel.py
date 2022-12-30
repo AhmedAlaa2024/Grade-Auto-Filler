@@ -1,19 +1,19 @@
 import xlsxwriter
 
 
-def generate_excel(workbook_name, worksheet_name, headers_list, data, names=False):
+def generateGradeSheetExcel(workbookName, worksheetName, headersList, data, names=False):
 	"""
 		Function used to create the excel sheet from the data extracted from the table
 	
 		Arguments:
-			workbook_name: File name
-			worksheet_name: Sheet name
-			headers_list: List of names of the first row [header]
+			workbookName: File name
+			worksheetName: Sheet name
+			headersList: List of names of the first row [header]
 			data: List of data used to fill the excel sheet
 			names: Boolean to determine if we are going to show english and arabic names or not
 	"""
 	# Creating workbook
-	workbook = xlsxwriter.Workbook(workbook_name + ".xlsx")
+	workbook = xlsxwriter.Workbook(workbookName + ".xlsx")
 
 	# Red background that will be used with question marks
 	redBG = workbook.add_format()
@@ -28,10 +28,10 @@ def generate_excel(workbook_name, worksheet_name, headers_list, data, names=Fals
 	alignRight.set_align("right")
 
 	# Creating worksheet
-	worksheet = workbook.add_worksheet(worksheet_name)
+	worksheet = workbook.add_worksheet(worksheetName)
 
 	# Adding headers
-	for index, header in enumerate(headers_list):
+	for index, header in enumerate(headersList):
 		worksheet.write(0, index, str(header).capitalize(), alignCenter)
 
 	# Widths array
@@ -40,7 +40,7 @@ def generate_excel(workbook_name, worksheet_name, headers_list, data, names=Fals
 
 	# Adding data
 	for index1, entry in enumerate(data):
-		for index2, header in enumerate(headers_list):
+		for index2, header in enumerate(headersList):
 			if entry[header] == -1:
 				worksheet.write(index1+1, index2, "", redBG)
 			elif entry[header] == -2:
@@ -68,3 +68,68 @@ def generate_excel(workbook_name, worksheet_name, headers_list, data, names=Fals
 
 	# Close workbook
 	workbook.close()
+
+
+def generateBubbleSheetExcel(workbookName, worksheetName, data):
+	"""
+		Function used to create the excel sheet from the data extracted from the bubble sheet
+	
+		Arguments:
+			workbookName: File name
+			worksheetName: Sheet name
+			data: List of data used to fill the excel sheet
+						example: {
+											"setName": False,
+											"id": 151111,
+											"name": "Beshoy Morad Atya",
+											"answers": [True, False, True, ....]
+											}
+	"""
+	# Creating workbook
+	workbook = xlsxwriter.Workbook(workbookName + ".xlsx")
+
+	# Align the inputs
+	alignCenter = workbook.add_format()
+	alignCenter.set_align("center")
+
+	# Creating worksheet
+	worksheet = workbook.add_worksheet(worksheetName)
+
+	# Add headers
+	if data["setName"]:
+		headersList = ["Name"]
+	else:
+		headersList = ["Code"]
+
+	for i in range(len(data["answers"])):
+		headersList.append(f"Q{i+1}")
+
+	# Adding headers
+	for index, header in enumerate(headersList):
+		worksheet.write(0, index, str(header).capitalize(), alignCenter)
+
+	# Adding the id or name
+	if data["setName"]:
+		worksheet.write(1, 0, data["name"], alignCenter)
+		worksheet.set_column(0, 0, len(data["name"])+2)
+	else:
+		worksheet.write(1, 0, data["id"], alignCenter)
+
+
+	# Adding data
+	for index, entry in enumerate(data["answers"]):
+		write = 0
+		if entry:
+			write = 1
+		worksheet.write(1, index+1, write, alignCenter)
+
+	# Close workbook
+	workbook.close()
+
+
+generateBubbleSheetExcel("Yarab", "FirstSheet", {
+	"setName": False,
+	"id": 151111,
+	"name": "Beshoy Morad Atya",
+	"answers": [True, False, True]
+	})
