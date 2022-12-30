@@ -1,0 +1,41 @@
+import numpy as np
+import os
+import scipy.ndimage
+from skimage.feature import hog
+from skimage import data, color, exposure
+from sklearn.model_selection import  train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+import joblib
+import cv2
+import imageio.v2 as imageio
+from commonfunctions import show_images 
+
+knn = joblib.load(".\models\knn_model.pkl")
+# extract the features from the image to predict
+def feature_extraction(image):
+    return hog(image, orientations=9, pixels_per_cell=(8, 8),cells_per_block=(2, 2), transform_sqrt=True, block_norm='L2-Hys')
+
+
+def predict(df):
+    predict = knn.predict(df.reshape(1,-1))[0]
+    predict_proba = knn.predict_proba(df.reshape(1,-1))
+    return predict, predict_proba[0][predict]
+
+
+
+
+# A function used to get the prediction of the digit from the image
+# params: It takes only the image
+def getPrediction(image):
+  digits = []
+  image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+  image = cv2.resize(image, (25, 25))
+  # digits.append(image)
+  # extract featuress
+  hog = feature_extraction(image)
+  # apply k-NN model created in previous
+  predictions = predict(hog)
+  return predictions[0]
+
+image = cv2.imread("./Cell_8_Test_10.jpg")
+print((getPrediction(image)))
