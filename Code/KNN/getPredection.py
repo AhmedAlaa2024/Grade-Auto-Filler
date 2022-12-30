@@ -1,14 +1,7 @@
-import numpy as np
-import os
-import scipy.ndimage
 from skimage.feature import hog
-from skimage import data, color, exposure
-from sklearn.model_selection import  train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 import joblib
 import cv2
-import imageio.v2 as imageio
-from commonfunctions import show_images 
 
 knn = joblib.load(".\models\knn_model.pkl")
 # extract the features from the image to predict
