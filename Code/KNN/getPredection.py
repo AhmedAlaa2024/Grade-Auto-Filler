@@ -28,5 +28,5 @@ def getPrediction(image):
   predictions = predict(hog)
   return predictions[0]
 
-image = cv2.imread("./Cell_8_Test_10.jpg")
-print((getPrediction(image)))
+# image = cv2.imread("./Cell_8_Test_10.jpg")
+# print((getPrediction(image)))
