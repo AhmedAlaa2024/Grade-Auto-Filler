@@ -27,10 +27,8 @@ def predict(df):
 # A function used to get the prediction of the digit from the image
 # params: It takes only the image
 def getPrediction(image):
-  digits = []
   image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
   image = cv2.resize(image, (25, 25))
-  # digits.append(image)
   # extract featuress
   hog = feature_extraction(image)
   # apply k-NN model created in previous
