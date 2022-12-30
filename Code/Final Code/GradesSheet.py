@@ -1,6 +1,6 @@
 from CellsExtractionPhase import main
 from DetectionPhase import detectionPhase
-from ExtractExcel import generate_excel
+from ExtractExcel import generateGradeSheetExcel
 
 # =============================================================================================
 # Extract cells from the table
@@ -24,6 +24,6 @@ columnTitles, data = detectionPhase(cellImages, getNames, OCR, method)
 # =============================================================================================
 # Prepare the excel sheet
 # =============================================================================================
-generate_excel("Result_{}".format(SampleNumber), "FirstSheet", columnTitles, data, getNames)
+generateGradeSheetExcel("Result_{}".format(SampleNumber), "FirstSheet", columnTitles, data, getNames)
 
 print("Happy Ending")
