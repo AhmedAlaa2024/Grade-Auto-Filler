@@ -188,7 +188,7 @@ def extractCells(binary, img):
     return cells
 
 
-def extractCells(imgPath):
+def main(imgPath):
     image = cv2.imread(imgPath)
 
     skewCorrected = skewCorrection(image)

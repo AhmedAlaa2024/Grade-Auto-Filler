@@ -1,4 +1,4 @@
-from cellsExtractionPhase import extractCells
+from cellsExtractionPhase import main
 from detectionPhase import detectionPhase
 from extractExcel import generateGradeSheetExcel
 from readConfigFiles import readConfigGradeSheet
@@ -11,7 +11,7 @@ config = readConfigGradeSheet()
 # =============================================================================================
 # Extract cells from the table
 # =============================================================================================
-cellImages = extractCells(config["samplePath"])
+cellImages = main(config["samplePath"])
 
 # =============================================================================================
 # Extract the data from the cell images

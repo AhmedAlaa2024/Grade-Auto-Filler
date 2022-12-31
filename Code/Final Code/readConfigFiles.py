@@ -116,7 +116,3 @@ def readConfigBubbleSheet():
 		"idList": idList,
 		"saveImagesDir": saveImagesDir
 	}
-
-
-config = readConfigBubbleSheet()
-print(config)
