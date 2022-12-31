@@ -5,7 +5,7 @@ from ExtractExcel import generateGradeSheetExcel
 # =============================================================================================
 # Extract cells from the table
 # =============================================================================================
-SampleNumber = 15
+SampleNumber = 5
 cellImages = main("../Samples/Samples/{}.jpg".format(SampleNumber))
 
 # =============================================================================================
@@ -14,12 +14,12 @@ cellImages = main("../Samples/Samples/{}.jpg".format(SampleNumber))
 
 # True if we want to extract names with grades
 getNames = False
-# True if we want to use already-made OCR, False if we want to use features + classifier
-OCR = True
+# Hybrid for [id -> OCR, digits -> KNN], OCR, or KNN
+digits = "KNN"
 # Method that we want to use to detect symbols
 method = "HOG"
 
-columnTitles, data = detectionPhase(cellImages, getNames, OCR, method)
+columnTitles, data = detectionPhase(cellImages, getNames, digits, method)
 
 # =============================================================================================
 # Prepare the excel sheet

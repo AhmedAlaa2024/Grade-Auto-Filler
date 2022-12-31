@@ -6,10 +6,13 @@ import os
 import joblib
 from skimage.feature import hog
 from commonfunctions import *
+from getPredection import getPrediction
+from segmentId import getIdFromImage
 
 os.environ["TESSDATA_PREFIX"] = r'C:\Users\iiBesh00\AppData\Local\Tesseract-OCR\tessdata'
 pytesseract.pytesseract.tesseract_cmd = r'C:\Users\iiBesh00\AppData\Local\Tesseract-OCR\tesseract.exe'
-HOG = joblib.load("../../Training/HOG Model/HOG_Model.npy")
+HOG = joblib.load("./models/HOG_Model.npy")
+
 # =============================================================================================
 # Detect names, codes and numeric values usign OCR
 # =============================================================================================
@@ -345,14 +348,14 @@ def detectCell(img, method="HOG"):
 # =============================================================================================
 # Detectin phase function
 # =============================================================================================
-def detectionPhase(images, names=False, OCR=True, method="HOG"):
+def detectionPhase(images, names=False, digits="Hybrid", method="HOG"):
 	"""
 		Function used to extract the data from a row of cells
 		
 		Arguments:
 			images: Array of cells ready to be detected
 			names: Boolean to determine if we are going to extract english and arabic names or not
-			OCR: Boolean to determine if we are going to use already-made OCR or features + classifier
+			digits: String value to determine the used method to detect ids and handwritten numeric values 
 			method: The method that we want to use to detect symbols [HOG, Vanela]
 		Returns:
 			Data ready to be exported to excel sheet
@@ -368,11 +371,15 @@ def detectionPhase(images, names=False, OCR=True, method="HOG"):
 		thirdCell = detectCell(images[i], method)
 		secondCell = detectCell(images[i+1], method)
 
-		if OCR:
+		if digits == "OCR":
 			firstCell = detectNumericValuesOCR(images[i+2])
 			code = getCode(images[i+5])
-		else:
-			pass
+		elif digits == "KNN":
+			firstCell = getPrediction(images[i+2])
+			code = getIdFromImage(images[i+5])
+		elif "Hybrid":
+			firstCell = getPrediction(images[i+2])
+			code = getCode(images[i+5])
 
 		data = {
 			"Code": code,

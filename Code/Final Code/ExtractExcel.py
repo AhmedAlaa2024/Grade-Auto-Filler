@@ -125,11 +125,3 @@ def generateBubbleSheetExcel(workbookName, worksheetName, data):
 
 	# Close workbook
 	workbook.close()
-
-
-generateBubbleSheetExcel("Yarab", "FirstSheet", {
-	"setName": False,
-	"id": 151111,
-	"name": "Beshoy Morad Atya",
-	"answers": [True, False, True]
-	})
