@@ -3,6 +3,7 @@ import numpy as np
 from getPredection import getPrediction
 
 def segmentId(img):
+	try:
 		img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 		img = 255 * img
 		img = cv2.normalize(img, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
@@ -26,11 +27,13 @@ def segmentId(img):
 				x = imgCopy.shape[1]
 				number_of_images = 1
 				if (x > 25):
-						number_of_images = np.ceil(x / 23.0)
+						number_of_images = np.ceil(x / 21.0)
 						for j in range(int(number_of_images)):
-								if imgCopy.size == 0:
+								if imgCopy.size == 0 or imgCopy[:, j * 23:(j + 1) * 23].size == 0:
 									continue
 								imgTemp = cv2.resize(imgCopy[:, j * 23:(j + 1) * 23], (200, 100))
+								if imgTemp.size == 0 :
+									continue
 								imgTemp = cv2.resize(imgTemp, None, fx=3, fy=3, interpolation=cv2.INTER_CUBIC)
 								cropped_digits.append(imgTemp)
 								i += 1
@@ -43,6 +46,9 @@ def segmentId(img):
 						i += 1
 
 		return cropped_digits
+
+	except:
+		return ""
 
 
 # A function used to extract the id from image
