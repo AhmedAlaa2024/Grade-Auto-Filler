@@ -42,5 +42,6 @@ def getIdFromImage(img):
 	predictedNumber = ""
 	for number in predictions:
 		predictedNumber += str(number)
+
 	return predictedNumber
 

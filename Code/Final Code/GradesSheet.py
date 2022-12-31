@@ -5,7 +5,7 @@ from ExtractExcel import generateGradeSheetExcel
 # =============================================================================================
 # Extract cells from the table
 # =============================================================================================
-SampleNumber = 5
+SampleNumber = 8
 cellImages = main("../Samples/Samples/{}.jpg".format(SampleNumber))
 
 # =============================================================================================

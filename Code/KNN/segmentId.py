@@ -4,7 +4,7 @@ from getPredection import getPrediction
 
 
 def segement(img):
-    img = 255*img
+    # img = 255*img
     kernel = np.ones((5, 5), np.uint8)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
@@ -27,23 +27,28 @@ def segement(img):
 # it takes the image then segment the digits from it and get the prediction from each image
 
 def getIdFromImage(img):
-  segmented_dimensions, filtered_img = segement(img)
-  cropped_digits = []
-  i = 0
-  for dimension in segmented_dimensions:
-    (x, y, w, h) = dimension
-    cropped_digits.append(filtered_img[y-1:y+h+1, x-1:x+w+1])
-    i += 1
+  try:
+    segmented_dimensions, filtered_img = segement(img)
+    cropped_digits = []
+    i = 0
+    for dimension in segmented_dimensions:
+      (x, y, w, h) = dimension
+      cropped_digits.append(filtered_img[y-1:y+h+1, x-1:x+w+1])
+      i += 1
 
-  predictions = []
+    predictions = []
 
-  for img in cropped_digits:
-    predictions.append(getPrediction(img))
+    for img in cropped_digits:
+      predictions.append(getPrediction(img))
 
-  predictedNumber = ""
-  for number in predictions:
-    predictedNumber += str(number)
-  return predictedNumber
+    predictedNumber = ""
+    for number in predictions:
+      predictedNumber += str(number)
+    return predictedNumber
+  except:
+    print("Error throw")
+    return "0"
+
 
 img = cv2.imread("../../Training/Dataset/ids/Cell_5_Test_13.jpg")
 print(getIdFromImage(img))
