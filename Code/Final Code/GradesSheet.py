@@ -1,29 +1,35 @@
-from cellsExtractionPhase import main
+from cellsExtractionPhase import extractCells
 from detectionPhase import detectionPhase
 from extractExcel import generateGradeSheetExcel
+from readConfigFiles import readConfigGradeSheet
+
+# =============================================================================================
+# Read the configuration file
+# =============================================================================================
+config = readConfigGradeSheet()
 
 # =============================================================================================
 # Extract cells from the table
 # =============================================================================================
-SampleNumber = 8
-cellImages = main("../Samples/Samples/{}.jpg".format(SampleNumber))
+cellImages = extractCells(config["samplePath"])
 
 # =============================================================================================
 # Extract the data from the cell images
 # =============================================================================================
 
 # True if we want to extract names with grades
-getNames = False
+getNames = config["getNames"]
 # Hybrid for [id -> OCR, digits -> KNN], OCR, or KNN
-digits = "KNN"
+digitsDetectionMethod = config["digitsDetectionMethod"]
 # Method that we want to use to detect symbols
-method = "HOG"
+symbolsDetectionMethod = config["symbolsDetectionMethod"]
 
-columnTitles, data = detectionPhase(cellImages, getNames, digits, method)
+columnTitles, data = detectionPhase(cellImages, getNames, 
+																		digitsDetectionMethod, symbolsDetectionMethod)
 
 # =============================================================================================
 # Prepare the excel sheet
 # =============================================================================================
-generateGradeSheetExcel("Result_{}".format(SampleNumber), "FirstSheet", columnTitles, data, getNames)
+generateGradeSheetExcel(config["fileName"], config["sheetName"], columnTitles, data, getNames)
 
 print("Happy Ending")

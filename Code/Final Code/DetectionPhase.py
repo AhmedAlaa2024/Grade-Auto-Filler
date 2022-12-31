@@ -5,7 +5,6 @@ import pytesseract
 import os
 import joblib
 from skimage.feature import hog
-from commonfunctions import *
 from getPredection import getPrediction
 from segmentId import getIdFromImage
 
