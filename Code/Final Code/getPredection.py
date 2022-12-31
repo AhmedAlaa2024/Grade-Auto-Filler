@@ -16,16 +16,16 @@ def predict(df):
 # A function used to get the prediction of the digit from the image
 # params: It takes only the image
 def getPrediction(image):
-  try:
-    if len(image.shape)==3:
-      image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    image = cv2.resize(image, (25, 25))
-    # extract featuress
-    hog = feature_extraction(image)
-    # apply k-NN model created in previous
-    predictions = predict(hog)
-    return predictions[0]
-  except cv2.error :
-    return "x"
-  except:
-    return "x"
+	try:
+		if len(image.shape)==3:
+			image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+		image = cv2.resize(image, (25, 25))
+		# extract featuress
+		hog = feature_extraction(image)
+		# apply k-NN model created in previous
+		predictions = predict(hog)
+		return predictions[0]
+	except cv2.error :
+		return "x"
+	except:
+		return "x"
