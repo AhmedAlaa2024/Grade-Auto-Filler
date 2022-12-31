@@ -115,3 +115,42 @@ def skewCorrection(image):
             break
     img = four_point_transform(orig, screenCnt.reshape(4, 2) * ratio)
     return img
+
+def isFilled(image, A):
+    Ax0 = A[0] - 5
+    Ay0 = A[1] - 5
+    Ax1 = A[0] + 5
+    Ay1 = A[1] + 5
+    circleImage = image[Ay0:Ay1,Ax0:Ax1]
+    circleImage[circleImage < 160] = 0
+    sumPixels = np.sum(circleImage)
+
+    
+    if sumPixels < 3000:
+        # cv2.circle(image, (A[0], A[1]), A[2], (0, 255, 0), 2)
+        # cv2.imshow("image",image)
+        # cv2.waitKey(0)
+        return True
+    else:
+        return False
+
+def extractStudentID(id_length, bubblesList):
+    STUDENT_ID = [] * id_length
+    bubblesList = np.array(bubblesList)
+    bubblesList = np.transpose(bubblesList)
+    # 10 for the number of decimal digits
+    for i in range(id_length):
+        if 'A' in bubblesList[i]:
+            STUDENT_ID[0] = (i + 1) % 10
+        if 'B' in bubblesList[i]:
+            STUDENT_ID[1] = (i + 1) % 10
+        if 'C' in bubblesList[i]:
+            STUDENT_ID[2] = (i + 1) % 10
+        if 'D' in bubblesList[i]:
+            STUDENT_ID[3] = (i + 1) % 10
+        if 'E' in bubblesList[i]:
+            STUDENT_ID[4] = (i + 1) % 10
+
+    s = [str(i) for i in STUDENT_ID]
+
+    return s[0]

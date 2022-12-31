@@ -32,9 +32,9 @@ ANSWERS = [
 ]
 
 # load the image, convert it to grayscale, blur it slightly, then find edges
-image = cv2.imread("AnswerSheets/12.jpg")
+image = cv2.imread("StudentAnswers/15.jpg")
 image = skewCorrection(image)
-image = image[320:(image.shape[0]-220),100:(image.shape[1]-100)]
+image = image[270:(image.shape[0]-200),100:(image.shape[1]-100)]
 
 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 blurred = cv2.GaussianBlur(gray, (5, 5), 0)
@@ -43,7 +43,7 @@ edged = cv2.Canny(gray, 20, 70)
 # Apply Hough transform on the blurred image.
 detected_circles_1 = cv2.HoughCircles(edged, 
                    cv2.HOUGH_GRADIENT, 1, 20, param1 = 70,
-               param2 = 20, minRadius = 10, maxRadius = 20)
+               param2 = 15, minRadius = 10, maxRadius = 20)
 
 thresholdedimage = cv2.threshold(gray, 0, 255,
 	cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
@@ -55,14 +55,19 @@ thresholdedimage = cv2.dilate(thresholdedimage, kernel1, iterations=1)
 thresholdedimage = 255 - thresholdedimage
 
 # convolution with circular kernel with radius = 25
-circle_radius = 5
+circle_radius = 7
 kernel2 = np.ones((2*circle_radius,2*circle_radius),dtype=int)
 answersImg = cv2.filter2D(src=thresholdedimage, ddepth=-1, kernel=kernel2)
 
+
+show_images_1([answersImg])
+
 # Erosion with circular kernel with radius = 5
-circle_radius = 10
+circle_radius = 7
 kernel3 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(2*circle_radius,2*circle_radius))
 answersImg = cv2.erode(answersImg, kernel3, iterations=1)
+
+show_images_1([answersImg])
 
 answerContours = cv2.findContours(255-answersImg.copy(), cv2.RETR_EXTERNAL,
 	cv2.CHAIN_APPROX_SIMPLE)
@@ -108,6 +113,12 @@ for circle in circles:
     # Draw a small circle (of radius 1) to show the center.
     cv2.circle(image, (a, b), 1, (0, 0, 255), 3)
 
+
+# titles = ["Detected Circle 1", "Answers Image"]
+# images = [gray, image]
+
+# show_images_1(images)
+
 answersCircles = []
 correct = 0
 
@@ -139,45 +150,36 @@ for (i, circle) in enumerate(answersCircles):
     y = int(circle[1] + (circle[3]/2))
 
     # Draw the circumference of the circle.
-    cv2.circle(image, (x, y), 15, (0, 0, 255), 2)
+    cv2.circle(image, (x, y), 10, (0, 0, 255), 2)
     # Draw a small circle (of radius 1) to show the center.
     cv2.circle(image, (x, y), 1, (0, 255, 0), 3)
 
-    if (x <= B[0]):
-        print("Q", (i+1), "Answer: A")
+    distance_from_A = np.sqrt((x - A[0])**2 + (y - A[1])**2)
+    distance_from_B = np.sqrt((x - B[0])**2 + (y - B[1])**2)
+    distance_from_C = np.sqrt((x - C[0])**2 + (y - C[1])**2)
+    distance_from_D = np.sqrt((x - D[0])**2 + (y - D[1])**2)
+    distance_from_E = np.sqrt((x - E[0])**2 + (y - E[1])**2)
 
-        if (i % 2 == 0):
-            answersLower.append('A')
-        else:
-            answersHigher.append('A')
-    elif ((x > A[0]) and (x < C[0])):
-        print("Q", (i+1), "Answer: B")
-                
-        if (i % 2 == 0):
-            answersLower.append('B')
-        else:
-            answersHigher.append('B')
-    elif ((x > B[0]) and (x < D[0])):
-        print("Q", (i+1), "Answer: C")
-                
-        if (i % 2 == 0):
-            answersLower.append('C')
-        else:
-            answersHigher.append('C')
-    elif ((x > C[0]) and (x < E[0])):
-        print("Q", (i+1), "Answer: D")
-                
-        if (i % 2 == 0):
-            answersLower.append('D')
-        else:
-            answersHigher.append('D')
-    elif (x > D[0]):
-        print("Q", (i+1), "Answer: E")
-                
-        if (i % 2 == 0):
-            answersLower.append('E')
-        else:
-            answersHigher.append('E')
+    distances = [
+        ('A', distance_from_A),
+        ('B', distance_from_B),
+        ('C', distance_from_C),
+        ('D', distance_from_D),
+        ('E', distance_from_E),
+    ]
+
+    distances = sorted(distances, key=lambda t: t[1])
+    print("Q[", (i+1), "] => Answer: ", distances[0][0])
+
+    if (i % 2 == 0):
+        answersLower.append(distances[0][0])
+    else:
+        answersHigher.append(distances[0][0])
+
+titles = ["Detected Circle 1", "Answers Image"]
+images = [thresholdedimage, image]
+
+show_images_1(images)
 
 print("\n========================= Wrong Answer Report ========================= ")
 answers = answersLower + answersHigher
