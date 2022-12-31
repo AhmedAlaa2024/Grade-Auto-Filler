@@ -27,7 +27,7 @@ def segmentId(img):
 				x = imgCopy.shape[1]
 				number_of_images = 1
 				if (x > 25):
-						number_of_images = np.ceil(x / 21.0)
+						number_of_images = np.ceil(x / 23.0)
 						for j in range(int(number_of_images)):
 								if imgCopy.size == 0 or imgCopy[:, j * 23:(j + 1) * 23].size == 0:
 									continue
