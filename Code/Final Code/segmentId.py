@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 from getPredection import getPrediction
-from commonfunctions import *
 
 def segmentId(img):
 		img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -50,23 +49,10 @@ def segmentId(img):
 # it takes the image then segment the digits from it and get the prediction from each image
 def getIdFromImage(img):
 		cropped_digits = segmentId(img)
-		# show_images(cropped_digits)
 		predictedNumber = ""
 
 		for img in cropped_digits:
-				# print(getPrediction(img))
 				contours, hierarchy = cv2.findContours((img).astype("uint8"), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-				
-				# for cnt in contours:
-				# 	size = cv2.contourArea(cnt)
-				# 	if size < 10000:
-				# 		continue
-				# 	print(size,getPrediction(img) )
-					# if size >= 1300:
-						# box += 1
 
-				# if len(contours) <=0:
-				# 	print("Number of cont")
-				# 	continue
 				predictedNumber += str(getPrediction(img))
 		return predictedNumber
