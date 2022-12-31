@@ -1,6 +1,6 @@
-from CellsExtractionPhase import main
-from DetectionPhase import detectionPhase
-from ExtractExcel import generateGradeSheetExcel
+from cellsExtractionPhase import main
+from detectionPhase import detectionPhase
+from extractExcel import generateGradeSheetExcel
 
 # =============================================================================================
 # Extract cells from the table
