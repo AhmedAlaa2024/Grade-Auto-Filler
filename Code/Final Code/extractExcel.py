@@ -78,10 +78,12 @@ def generateBubbleSheetExcel(workbookName, worksheetName, data):
 			workbookName: File name
 			worksheetName: Sheet name
 			data: List of data used to fill the excel sheet
-						example: {
-											"id": 151111,
-											"answers": [True, False, True, ....]
-											}
+						example: 	[
+												{
+												"id": 151111,
+												"answers": [True, False, True, ....]
+												}
+											]
 	"""
 	# Creating workbook
 	workbook = xlsxwriter.Workbook(workbookName + ".xlsx")
@@ -96,22 +98,24 @@ def generateBubbleSheetExcel(workbookName, worksheetName, data):
 	# Add headers
 	headersList = ["Code"]
 
-	for i in range(len(data["answers"])):
+	for i in range(len(data[0]["answers"])):
 		headersList.append(f"Q{i+1}")
 
 	# Adding headers
 	for index, header in enumerate(headersList):
 		worksheet.write(0, index, str(header).capitalize(), alignCenter)
 
-	# Adding the id or name
-	worksheet.write(1, 0, data["id"], alignCenter)
-
 	# Adding data
-	for index, entry in enumerate(data["answers"]):
-		write = 0
-		if entry:
-			write = 1
-		worksheet.write(1, index+1, write, alignCenter)
+	for i in range(1, len(data)+1):
+		# Adding the ids
+		worksheet.write(i, 0, data[i-1]["id"], alignCenter)
+
+		# Adding data
+		for index, entry in enumerate(data[i-1]["answers"]):
+			write = 0
+			if entry:
+				write = 1
+			worksheet.write(i, index+1, write, alignCenter)
 
 	# Close workbook
 	workbook.close()
