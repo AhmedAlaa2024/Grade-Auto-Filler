@@ -10,7 +10,7 @@ from cellsExtractionPhase import skewCorrection
 ANSWERS_1 = [
     'C',
     'D',
-    'E',
+    'C',
     'D',
     'C',
     'B',
@@ -18,10 +18,10 @@ ANSWERS_1 = [
     'B',
     'B',
     'A',
-    'D',
+    'A',
     'E',
     'C',
-    'C',
+    'B',
     'B',
     'A',
     'D',
@@ -32,7 +32,7 @@ ANSWERS_1 = [
 
 ANSWERS_2 = [
     'E',
-    'A',
+    'B',
     'B',
     'D',
     'C',
@@ -43,11 +43,11 @@ ANSWERS_2 = [
     'D',
     'A',
     'B',
-    'C',
+    'D',
     'D',
     'E',
     'E',
-    'E',
+    'B',
     'B',
     'A',
     'D',
@@ -57,7 +57,7 @@ ANSWERS_2 = [
     'B',
     'D',
     'E',
-    'E',
+    'B',
     'B',
     'B',
     'B',
@@ -67,7 +67,7 @@ ANSWERS_2 = [
     'B',
     'B',
     'E',
-    'D',
+    'B',
     'D',
     'C',
     'A',
@@ -75,12 +75,12 @@ ANSWERS_2 = [
     'B',
     'A',
     'B',
-    'C',
+    'B',
     'D',
     'E',
     'D',
-    'C',
-    'B'
+    'B',
+    'c'
 ]
 
 def show_images(titles, images, wait=True):
@@ -105,9 +105,6 @@ def isFilled(image, A, thresh_1, thresh_2):
 
     
     if sumPixels < thresh_2:
-        # cv2.circle(image, (A[0], A[1]), A[2], (0, 255, 0), 2)
-        # cv2.imshow("image",image)
-        # cv2.waitKey(0)
         return True
     else:
         return False
@@ -116,6 +113,7 @@ def extractStudentID(id_length, bubblesList):
     STUDENT_ID = [0] * id_length
     bubblesList = np.array(bubblesList, dtype=object)
     bubblesList = np.transpose(bubblesList)
+    
     # 10 for the number of decimal digits
     for i in range(id_length):
         if 'A' in bubblesList[i]:
@@ -133,13 +131,14 @@ def extractStudentID(id_length, bubblesList):
 
     return "".join(s)
 
-
-def bubble_sheet_autocorrect_1(image, ANSWERS, student_ID, NUM_QUESTIONS=20, NUM_ROWS=10, NUM_COLUMNS=10, NUM_CHOICES=5):
+# bubble_sheet_autocorrect_1(saveImagesDir, id, numQuestions, numRow, numCol, numChoices)
+def bubble_sheet_autocorrect_1(imagePath, modelAnswer, wantToSaveImage, saveImagesDir, student_ID, NUM_QUESTIONS=20, numRow=10, NUM_COLUMNS=10, NUM_CHOICES=5):
+    image = cv2.imread(imagePath)
     image = skewCorrection(image)
+    original = image.copy()
     image = image[320:(image.shape[0]-200),100:(image.shape[1]-100)]
 
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    # blurred = cv2.GaussianBlur(gray, (5, 5), 0)
     edged = cv2.Canny(gray, 20, 70)
 
     # Apply Hough transform on the blurred image.
@@ -168,7 +167,7 @@ def bubble_sheet_autocorrect_1(image, ANSWERS, student_ID, NUM_QUESTIONS=20, NUM
     )
 
     # Sort every 15 circles regarding to X
-    for i in range(NUM_ROWS):
+    for i in range(numRow):
         circles[(i*NUM_COLUMNS):(i+1)*NUM_COLUMNS] = sorted(circles[(i*NUM_COLUMNS):(i+1)*NUM_COLUMNS], key=lambda t: t[0])
 
     for circle in circles:
@@ -179,6 +178,11 @@ def bubble_sheet_autocorrect_1(image, ANSWERS, student_ID, NUM_QUESTIONS=20, NUM
     answersLeft = []
     answersRight = []
 
+    markedLeft = []
+    markedRight = []
+
+    markedCircles = []
+    circle = 0
     print("\n========================= Answers Reports ========================= ")
 
     for i in range(0, len(circles) // NUM_CHOICES):
@@ -194,58 +198,43 @@ def bubble_sheet_autocorrect_1(image, ANSWERS, student_ID, NUM_QUESTIONS=20, NUM
         if isFilled(gray, A, 180, 10000):
             answers_vector.append('A')
             isfound = True
-
-            # Draw the circumference of the circle.
-            cv2.circle(image, (A[0], A[1]), A[2], (0, 255, 0), 2)
-            # Draw a small circle (of radius 1) to show the center.
-            cv2.circle(image, (A[0], A[1]), 1, (255, 0, 0), 3)
+            circle = A
 
         if isFilled(gray, B, 180, 10000):
             answers_vector.append('B')
             isfound = True
-
-            # Draw the circumference of the circle.
-            cv2.circle(image, (B[0], B[1]), B[2], (0, 255, 0), 2)
-            # Draw a small circle (of radius 1) to show the center.
-            cv2.circle(image, (B[0], B[1]), 1, (255, 0, 0), 3)
+            circle = B
 
         if isFilled(gray, C, 180, 10000):
             answers_vector.append('C')
             isfound = True
-
-            # Draw the circumference of the circle.
-            cv2.circle(image, (C[0], C[1]), C[2], (0, 255, 0), 2)
-            # Draw a small circle (of radius 1) to show the center.
-            cv2.circle(image, (C[0], C[1]), 1, (255, 0, 0), 3)
+            circle = C
 
         if isFilled(gray, D, 180, 10000):
             answers_vector.append('D')
             isfound = True
 
-            # Draw the circumference of the circle.
-            cv2.circle(image, (D[0], D[1]), D[2], (0, 255, 0), 2)
-            # Draw a small circle (of radius 1) to show the center.
-            cv2.circle(image, (D[0], D[1]), 1, (255, 0, 0), 3)
+            circle = D
 
         if isFilled(gray, E, 180, 10000):
             answers_vector.append('E')
             isfound = True
 
-            # Draw the circumference of the circle.
-            cv2.circle(image, (E[0], E[1]), E[2], (0, 255, 0), 2)
-            # Draw a small circle (of radius 1) to show the center.
-            cv2.circle(image, (E[0], E[1]), 1, (255, 0, 0), 3)
+            circle = E
 
         if not isfound:
             answers_vector.append(None)
 
         if (i % (NUM_COLUMNS // NUM_CHOICES) == 0):
             answersLeft.append(answers_vector)
+            markedLeft.append(circle)
         else:
             answersRight.append(answers_vector)
+            markedRight.append(circle)
 
 
     bubbles = answersLeft + answersRight
+    markedCircles = markedLeft + markedRight
 
     i = 1
     answers = []
@@ -259,13 +248,24 @@ def bubble_sheet_autocorrect_1(image, ANSWERS, student_ID, NUM_QUESTIONS=20, NUM
     correct = 0
     results = []
     for i in range(len(answers)):
-        if (answers[i] == ANSWERS[i]):
+        circle = markedCircles[i]
+        if (answers[i] == modelAnswer[i]):
             correct += 1
             results.append(True)
+
+            # Draw the circumference of the circle.
+            cv2.circle(image, (circle[0], circle[1]), circle[2], (0, 255, 0), 2)
+            # Draw a small circle (of radius 1) to show the center.
+            cv2.circle(image, (circle[0], circle[1]), 1, (255, 0, 0), 3)
         else:
-            wrong_answers.append((i+1, answers[i], ANSWERS[i]))
-            print("Q[{}] is {} but it should be {}".format(i+1, answers[i], ANSWERS[i]))
+            wrong_answers.append((i+1, answers[i], modelAnswer[i]))
+            print("Q[{}] is {} but it should be {}".format(i+1, answers[i], modelAnswer[i]))
             results.append(False)
+
+            # Draw the circumference of the circle.
+            cv2.circle(image, (circle[0], circle[1]), circle[2], (0, 0, 255), 2)
+            # Draw a small circle (of radius 1) to show the center.
+            cv2.circle(image, (circle[0], circle[1]), 1, (255, 0, 0), 3)
 
     if correct == len(answers):
         print("None")
@@ -273,16 +273,21 @@ def bubble_sheet_autocorrect_1(image, ANSWERS, student_ID, NUM_QUESTIONS=20, NUM
     print("\n========================= Conclusion Report ========================= ")
     print("Student ID: ", student_ID)
     print("Result: {}/{}".format(correct, NUM_QUESTIONS))
+    print("Marked Paper is saved in: ", str(saveImagesDir + '/' + student_ID + ".jpg"))
 
-    show_images(["Answer paper"], [image])
+    original[320:(original.shape[0]-200),100:(original.shape[1]-100)] = image
+    if wantToSaveImage:
+        cv2.imwrite(str(saveImagesDir + '/' + student_ID + ".jpg"), original)
 
     return {
         "id": student_ID,
         "answers": results
     }
 
-def bubble_sheet_autocorrect_2(image, ANSWERS, STUDENT_ID_LENGTH=5, NUM_QUESTIONS=50, NUM_ROWS=20, NUM_COLUMNS=15, NUM_CHOICES=5):
+def bubble_sheet_autocorrect_2(imagePath, modelAnswer, wantToSaveImage, saveImagesDir, STUDENT_ID_LENGTH=5, NUM_QUESTIONS=50, numRow=20, NUM_COLUMNS=15, NUM_CHOICES=5):
+    image = cv2.imread(imagePath)
     image = skewCorrection(image)
+    original = image.copy()
     image = image[280:(image.shape[0]-150),100:(image.shape[1]-100)]
 
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -315,7 +320,7 @@ def bubble_sheet_autocorrect_2(image, ANSWERS, STUDENT_ID_LENGTH=5, NUM_QUESTION
     )
 
     # Sort every 15 circles regarding to X
-    for i in range(NUM_ROWS):
+    for i in range(numRow):
         circles[(i*NUM_COLUMNS):(i+1)*NUM_COLUMNS] = sorted(circles[(i*NUM_COLUMNS):(i+1)*NUM_COLUMNS], key=lambda t: t[0])
 
     for circle in circles:
@@ -326,6 +331,12 @@ def bubble_sheet_autocorrect_2(image, ANSWERS, STUDENT_ID_LENGTH=5, NUM_QUESTION
     answersLeft = []
     answersMiddle = []
     answersRight = []
+
+    markedLeft = []
+    markedMiddle = []
+    markedRight = []
+
+    markedCircles = []
 
     print("\n========================= Answers Reports ========================= ")
 
@@ -341,6 +352,7 @@ def bubble_sheet_autocorrect_2(image, ANSWERS, STUDENT_ID_LENGTH=5, NUM_QUESTION
 
         if isFilled(gray, A, 160, 3000):
             answers_vector.append('A')
+            circle = A
             isfound = True
 
             # Draw the circumference of the circle.
@@ -350,6 +362,7 @@ def bubble_sheet_autocorrect_2(image, ANSWERS, STUDENT_ID_LENGTH=5, NUM_QUESTION
 
         if isFilled(gray, B, 160, 3000):
             answers_vector.append('B')
+            circle = B
             isfound = True
 
             # Draw the circumference of the circle.
@@ -359,6 +372,7 @@ def bubble_sheet_autocorrect_2(image, ANSWERS, STUDENT_ID_LENGTH=5, NUM_QUESTION
 
         if isFilled(gray, C, 160, 3000):
             answers_vector.append('C')
+            circle = C
             isfound = True
 
             # Draw the circumference of the circle.
@@ -368,6 +382,7 @@ def bubble_sheet_autocorrect_2(image, ANSWERS, STUDENT_ID_LENGTH=5, NUM_QUESTION
 
         if isFilled(gray, D, 160, 3000):
             answers_vector.append('D')
+            circle = D
             isfound = True
 
             # Draw the circumference of the circle.
@@ -377,6 +392,7 @@ def bubble_sheet_autocorrect_2(image, ANSWERS, STUDENT_ID_LENGTH=5, NUM_QUESTION
 
         if isFilled(gray, E, 160, 3000):
             answers_vector.append('E')
+            circle = E
             isfound = True
 
             # Draw the circumference of the circle.
@@ -388,18 +404,23 @@ def bubble_sheet_autocorrect_2(image, ANSWERS, STUDENT_ID_LENGTH=5, NUM_QUESTION
             answers_vector.append(None)
 
         if (i % (NUM_COLUMNS // NUM_CHOICES) == 0):
+            markedLeft.append(circle)
             answersLeft.append(answers_vector)
         elif (i % (NUM_COLUMNS // NUM_CHOICES) == 1):
+            markedMiddle.append(circle)
             answersMiddle.append(answers_vector)
         else:
+            markedRight.append(circle)
             answersRight.append(answers_vector)
 
-
     bubbles = answersLeft + answersMiddle + answersRight
+    markedCircles = markedLeft + markedMiddle + markedRight
 
     student_ID = extractStudentID(STUDENT_ID_LENGTH, bubbles[0:10])
 
     bubbles = bubbles[10:]
+    markedCircles = markedCircles[10:]
+    
     i = 1
     answers = []
     for bubble in bubbles:
@@ -411,14 +432,26 @@ def bubble_sheet_autocorrect_2(image, ANSWERS, STUDENT_ID_LENGTH=5, NUM_QUESTION
     wrong_answers = []
     correct = 0
     results = []
+    
     for i in range(len(answers)):
-        if (answers[i] == ANSWERS[i]):
+        circle = markedCircles[i]
+        if (answers[i] == modelAnswer[i]):
             correct += 1
             results.append(True)
+
+            # Draw the circumference of the circle.
+            cv2.circle(image, (circle[0], circle[1]), circle[2], (0, 255, 0), 2)
+            # Draw a small circle (of radius 1) to show the center.
+            cv2.circle(image, (circle[0], circle[1]), 1, (255, 0, 0), 3)
         else:
-            wrong_answers.append((i+1, answers[i], ANSWERS[i]))
-            print("Q[{}] is {} but it should be {}".format(i+1, answers[i], ANSWERS[i]))
+            wrong_answers.append((i+1, answers[i], modelAnswer[i]))
+            print("Q[{}] is {} but it should be {}".format(i+1, answers[i], modelAnswer[i]))
             results.append(False)
+
+            # Draw the circumference of the circle.
+            cv2.circle(image, (circle[0], circle[1]), circle[2], (0, 0, 255), 2)
+            # Draw a small circle (of radius 1) to show the center.
+            cv2.circle(image, (circle[0], circle[1]), 1, (255, 0, 0), 3)
 
     if correct == len(answers):
         print("None")
@@ -426,8 +459,12 @@ def bubble_sheet_autocorrect_2(image, ANSWERS, STUDENT_ID_LENGTH=5, NUM_QUESTION
     print("\n========================= Conclusion Report ========================= ")
     print("Student ID: ", student_ID)
     print("Result: {}/{}".format(correct, NUM_QUESTIONS))
+    print("Marked Paper is saved in: ", str(saveImagesDir + '/' + student_ID + ".jpg"))
 
-    show_images(["Answer paper"], [image])
+    original[280:(original.shape[0]-150),100:(original.shape[1]-100)] = image
+
+    if wantToSaveImage:
+        cv2.imwrite(str(saveImagesDir + '/' + student_ID + ".jpg"), original)
 
     return {
         "id": student_ID,
@@ -436,28 +473,48 @@ def bubble_sheet_autocorrect_2(image, ANSWERS, STUDENT_ID_LENGTH=5, NUM_QUESTION
 
 
 def bubbleSheetAutoCorrector(config):
-	# config["studentAnswerPaperPath"] => SAMPLE_PATH
-	# config["numStudents"] => NUM_STD
-	# config["numChoices"] => NUM_CHOICES
-	# config["idExist"] => ID_EXIST
-	# config["IdLen"] => STD_ID_LEN
-	# config["modelAnsFile"] => MODEL_ANSWERS_FILE
-	# config["idList"] => STD_ID_LIST
-	# config["result"] => FILE_NAME
-	# config["sheetName"] => SHEET_NAME
-	# config["saveImages"] => SAVE_IMAGES
-	# config["saveImagesDir"] => SAVE_IMAGEs_DIR
-	# config["numCol"] => NUM_COL
-	# config["numRow"] => NUM_ROW
-	print(config)
+    studentAnswerPaperPath = config["studentAnswerPaperPath"]
+    numStudents = config["numStudents"]
+    numQuestions = config["numQuestions"]
+    numChoices = config["numChoices"]
+    idExist = config["idExist"]
+    IdLen = config["IdLen"]
+    modelAnsPath = config["modelAnsFile"]
+    idListPath = config["idList"]
+    wantToSaveImage = config["saveImages"]
+    saveImagesDir = config["saveImagesDir"]
+    numCol = config["numCol"]
+    numRow = config["numRow"]
 
-	return {
-		"id": "12457",
-		"answers": [True, False, True]
-	}
+    results = []
+
+    modelAnswer = []
+    file = open(modelAnsPath, 'r')
+    for line in file:
+        modelAnswer.append(line.split("\n")[0])
+    file.close()
+
+    if not idExist:
+        idList = []
+        file = open(idListPath, 'r')
+        for line in file:
+            idList.append(line.split("\n")[0])
+        file.close()
+
+        if numStudents != len(idList):
+            print("Number of students doesn't match the number of IDs in the list!")
+            raise SystemExit(2)
+
+        for id in idList:
+            result = bubble_sheet_autocorrect_1(studentAnswerPaperPath, modelAnswer, wantToSaveImage, saveImagesDir, id, numQuestions, numRow, numCol, numChoices)
+            results.append(result)
+    else:
+        pass
+
+    return results
 
 # image = cv2.imread("../Samples/StudentAnswers/11.jpg")
-image = cv2.imread("../Samples/StudentAnswers/15.jpg")
-# results = bubble_sheet_autocorrect_1(image, ANSWERS_1, "02141", NUM_QUESTIONS=20, NUM_ROWS=10, NUM_COLUMNS=10, NUM_CHOICES=5)
-results = bubble_sheet_autocorrect_2(image, ANSWERS_2, 5, NUM_QUESTIONS=50, NUM_ROWS=20, NUM_COLUMNS=15, NUM_CHOICES=5)
-print(results)
+# image = cv2.imread("../Samples/StudentAnswers/15.jpg")
+# results = bubble_sheet_autocorrect_1(image, ANSWERS_1,"./MarkedPapers", "9202141", NUM_QUESTIONS=20, numRow=10, NUM_COLUMNS=10, NUM_CHOICES=5)
+# results = bubble_sheet_autocorrect_2(image, ANSWERS_2, "./MarkedPapers", 5, NUM_QUESTIONS=50, NUM_ROWS=20, NUM_COLUMNS=15, NUM_CHOICES=5)
+# print(results)

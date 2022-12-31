@@ -58,6 +58,7 @@ def readConfigBubbleSheet():
 
 	studentAnswerPaperPath = "./StudentAnswerPapers/1.jpg"
 	numStudents = 75
+	numQuestions = 20
 	numChoices = 5
 	idExist = True
 	IdLen = 5
@@ -67,8 +68,8 @@ def readConfigBubbleSheet():
 	sheetName = "Sheet 1"
 	saveImages = True
 	saveImagesDir = "./MarkedPapers"
-	numCol = 3
-	numRow = 3
+	numCol = 10
+	numRow = 10
 
 	for line in file:
 		lineData = line.split("=")
@@ -107,11 +108,14 @@ def readConfigBubbleSheet():
 			idList = value
 		elif param == "SAVE_IMAGEs_DIR":
 			saveImagesDir = value
+		elif param == "NUM_QUESTIONS":
+			numQuestions = int(value)
 
 	file.close()
 	return {
 		"studentAnswerPaperPath": studentAnswerPaperPath,
 		"numStudents": numStudents,
+		"numQuestions": numQuestions,
 		"numChoices": numChoices,
 		"idExist": idExist,
 		"saveImages": saveImages,

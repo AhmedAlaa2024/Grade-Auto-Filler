@@ -17,4 +17,7 @@ data = bubbleSheetAutoCorrector(config)
 # =============================================================================================
 generateBubbleSheetExcel(config["result"], config["sheetName"], data)
 
-print("Happy Ending")
+print("\n")
+print(" ============================================================ ")
+print("| Grading is fininalized and reports are saved successfully! |")
+print(" ============================================================ ")
