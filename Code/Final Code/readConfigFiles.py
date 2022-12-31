@@ -67,6 +67,7 @@ def readConfigBubbleSheet():
 	sheetName = "Sheet 1"
 	saveImages = True
 	saveImagesDir = "./MarkedPapers"
+	numCol = 3
 
 	for line in file:
 		lineData = line.split("=")
@@ -88,6 +89,8 @@ def readConfigBubbleSheet():
 		elif param == "NUM_STD":
 			numStudents = int(value)
 		elif param == "NUM_CHOICES":
+			numChoices = int(value)
+		elif param == "NUM_COL":
 			numChoices = int(value)
 		elif param == "STD_ID_LEN":
 			IdLen = int(value)
@@ -114,5 +117,6 @@ def readConfigBubbleSheet():
 		"sheetName": sheetName,
 		"modelAnsFile": modelAnsFile,
 		"idList": idList,
+		"numCol": numCol,
 		"saveImagesDir": saveImagesDir
 	}
