@@ -47,7 +47,6 @@ def segmentId(img):
 # A function used to extract the id from image
 # it takes the image then segment the digits from it and get the prediction from each image
 def getIdFromImage(img):
-    print("Entered")
     cropped_digits = segmentId(img)
     predictedNumber = ""
 
