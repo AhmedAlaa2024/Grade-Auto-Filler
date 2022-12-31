@@ -79,9 +79,7 @@ def generateBubbleSheetExcel(workbookName, worksheetName, data):
 			worksheetName: Sheet name
 			data: List of data used to fill the excel sheet
 						example: {
-											"setName": False,
 											"id": 151111,
-											"name": "Beshoy Morad Atya",
 											"answers": [True, False, True, ....]
 											}
 	"""
@@ -96,10 +94,7 @@ def generateBubbleSheetExcel(workbookName, worksheetName, data):
 	worksheet = workbook.add_worksheet(worksheetName)
 
 	# Add headers
-	if data["setName"]:
-		headersList = ["Name"]
-	else:
-		headersList = ["Code"]
+	headersList = ["Code"]
 
 	for i in range(len(data["answers"])):
 		headersList.append(f"Q{i+1}")
@@ -109,12 +104,7 @@ def generateBubbleSheetExcel(workbookName, worksheetName, data):
 		worksheet.write(0, index, str(header).capitalize(), alignCenter)
 
 	# Adding the id or name
-	if data["setName"]:
-		worksheet.write(1, 0, data["name"], alignCenter)
-		worksheet.set_column(0, 0, len(data["name"])+2)
-	else:
-		worksheet.write(1, 0, data["id"], alignCenter)
-
+	worksheet.write(1, 0, data["id"], alignCenter)
 
 	# Adding data
 	for index, entry in enumerate(data["answers"]):
