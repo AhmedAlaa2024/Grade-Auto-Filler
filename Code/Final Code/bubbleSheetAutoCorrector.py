@@ -1,87 +1,8 @@
 import numpy as np
 import cv2
+import os
 from cellsExtractionPhase import skewCorrection
 
-# STUDENT_ID_LENGTH = 5
-# NUM_QUESTIONS = 20
-# NUM_CHOICES = 5
-# MULTIPLE_CHOICE_IS_ALLOWED = True
-
-ANSWERS_1 = [
-    'C',
-    'D',
-    'C',
-    'D',
-    'C',
-    'B',
-    'A',
-    'B',
-    'B',
-    'A',
-    'A',
-    'E',
-    'C',
-    'B',
-    'B',
-    'A',
-    'D',
-    'D',
-    'E',
-    'C'
-]
-
-ANSWERS_2 = [
-    'E',
-    'B',
-    'B',
-    'D',
-    'C',
-    'C',
-    'E',
-    'A',
-    'B',
-    'D',
-    'A',
-    'B',
-    'D',
-    'D',
-    'E',
-    'E',
-    'B',
-    'B',
-    'A',
-    'D',
-    'A',
-    'A',
-    'C',
-    'B',
-    'D',
-    'E',
-    'B',
-    'B',
-    'B',
-    'B',
-    'B',
-    'C',
-    'A',
-    'B',
-    'B',
-    'E',
-    'B',
-    'D',
-    'C',
-    'A',
-    'C',
-    'B',
-    'A',
-    'B',
-    'B',
-    'D',
-    'E',
-    'D',
-    'B',
-    'c'
-]
 
 def show_images(titles, images, wait=True):
     """Display multiple images with one line of code"""
@@ -133,7 +54,7 @@ def extractStudentID(id_length, bubblesList):
 
 # bubble_sheet_autocorrect_1(saveImagesDir, id, numQuestions, numRow, numCol, numChoices)
 def bubble_sheet_autocorrect_1(imagePath, modelAnswer, wantToSaveImage, saveImagesDir, student_ID, NUM_QUESTIONS=20, numRow=10, NUM_COLUMNS=10, NUM_CHOICES=5):
-    image = cv2.imread(imagePath)
+    image = cv2.imread(imagePath + f"/{student_ID}.jpg")
     image = skewCorrection(image)
     original = image.copy()
     image = image[320:(image.shape[0]-200),100:(image.shape[1]-100)]
@@ -509,12 +430,19 @@ def bubbleSheetAutoCorrector(config):
             result = bubble_sheet_autocorrect_1(studentAnswerPaperPath, modelAnswer, wantToSaveImage, saveImagesDir, id, numQuestions, numRow, numCol, numChoices)
             results.append(result)
     else:
-        pass
+
+        # get all the image names
+        all_images = os.listdir(studentAnswerPaperPath)
+
+        if numStudents != len(all_images):
+            print("Number of students doesn't match the number of papers in the SAMPLE_PATH directory!")
+            raise SystemExit(2)
+
+        # iterate over the image names, get the label
+        for image in all_images:
+            image_path = f"{studentAnswerPaperPath}/{image}"
+            
+            result = bubble_sheet_autocorrect_2(image_path, modelAnswer, wantToSaveImage, saveImagesDir, IdLen, numQuestions, numRow, numCol, numChoices)
+            results.append(result)
 
     return results
-
-# image = cv2.imread("../Samples/StudentAnswers/11.jpg")
-# image = cv2.imread("../Samples/StudentAnswers/15.jpg")
-# results = bubble_sheet_autocorrect_1(image, ANSWERS_1,"./MarkedPapers", "9202141", NUM_QUESTIONS=20, numRow=10, NUM_COLUMNS=10, NUM_CHOICES=5)
-# results = bubble_sheet_autocorrect_2(image, ANSWERS_2, "./MarkedPapers", 5, NUM_QUESTIONS=50, NUM_ROWS=20, NUM_COLUMNS=15, NUM_CHOICES=5)
-# print(results)
