@@ -198,7 +198,9 @@ def bubble_sheet_autocorrect_1(imagePath, modelAnswer, wantToSaveImage, saveImag
 
     original[320:(original.shape[0]-200),100:(original.shape[1]-100)] = image
     if wantToSaveImage:
-        cv2.imwrite(str(saveImagesDir + '/' + student_ID + ".jpg"), original)
+        if not os.path.exists(saveImagesDir):
+            os.makedirs(saveImagesDir)
+        cv2.imwrite(str(saveImagesDir + '/Patch_1_' + student_ID + ".jpg"), original)
 
     return {
         "id": student_ID,
@@ -385,7 +387,9 @@ def bubble_sheet_autocorrect_2(imagePath, modelAnswer, wantToSaveImage, saveImag
     original[280:(original.shape[0]-150),100:(original.shape[1]-100)] = image
 
     if wantToSaveImage:
-        cv2.imwrite(str(saveImagesDir + '/' + student_ID + ".jpg"), original)
+        if not os.path.exists(saveImagesDir):
+            os.makedirs(saveImagesDir)
+        cv2.imwrite(str(saveImagesDir + '/Patch_2_' + student_ID + ".jpg"), original)
 
     return {
         "id": student_ID,
