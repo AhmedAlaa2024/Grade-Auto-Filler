@@ -58,7 +58,5 @@ def getIdFromImage(img):
 		predictedNumber = ""
 
 		for img in cropped_digits:
-				contours, hierarchy = cv2.findContours((img).astype("uint8"), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-
 				predictedNumber += str(getPrediction(img))
 		return predictedNumber
