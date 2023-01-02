@@ -57,15 +57,22 @@ def bubble_sheet_autocorrect_1(imagePath, modelAnswer, wantToSaveImage, saveImag
     image = cv2.imread(imagePath + f"/{student_ID}.jpg")
     image = skewCorrection(image)
     original = image.copy()
-    image = image[320:(image.shape[0]-200),100:(image.shape[1]-100)]
+    image = image[120:(image.shape[0]-50),100:(image.shape[1]-90)]
 
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     edged = cv2.Canny(gray, 20, 70)
 
+    cv2.namedWindow("Original", cv2.WINDOW_NORMAL)
+    cv2.resizeWindow("Original", 900, 900)
+    cv2.namedWindow("Edged", cv2.WINDOW_NORMAL)
+    cv2.resizeWindow("Edged", 900, 900)
+    cv2.imshow("Original", original)
+    cv2.imshow("Edged", edged)
+    cv2.waitKey(0)
     # Apply Hough transform on the blurred image.
     detected_circles = cv2.HoughCircles(edged, 
-                   cv2.HOUGH_GRADIENT, 1, 20, param1 = 70,
-               param2 = 15, minRadius = 13, maxRadius = 20)
+                   cv2.HOUGH_GRADIENT, 1, 30, param1 = 70,
+               param2 = 15, minRadius = 14, maxRadius = 20)
 
     circles = []
 
@@ -104,6 +111,16 @@ def bubble_sheet_autocorrect_1(imagePath, modelAnswer, wantToSaveImage, saveImag
 
     markedCircles = []
     circle = 0
+
+    for circle in circles:
+        cv2.circle(image, (circle[0], circle[1]), circle[2], (0, 255, 0), 2)
+        # Draw a small circle (of radius 1) to show the center.
+        cv2.circle(image, (circle[0], circle[1]), 1, (255, 0, 0), 3)
+    cv2.namedWindow("Circles", cv2.WINDOW_NORMAL)
+    cv2.resizeWindow("Circles", 900, 900)
+    cv2.imshow("Circles", image)
+    cv2.waitKey(0)
+
     print("\n========================= Answers Reports ========================= ")
 
     for i in range(0, len(circles) // NUM_CHOICES):
@@ -196,7 +213,7 @@ def bubble_sheet_autocorrect_1(imagePath, modelAnswer, wantToSaveImage, saveImag
     print("Result: {}/{}".format(correct, NUM_QUESTIONS))
     print("Marked Paper is saved in: ", str(saveImagesDir + '/' + student_ID + ".jpg"))
 
-    original[320:(original.shape[0]-200),100:(original.shape[1]-100)] = image
+    original[420:(original.shape[0]-200),300:(original.shape[1]-100)] = image
     if wantToSaveImage:
         if not os.path.exists(saveImagesDir):
             os.makedirs(saveImagesDir)
@@ -211,16 +228,24 @@ def bubble_sheet_autocorrect_2(imagePath, modelAnswer, wantToSaveImage, saveImag
     image = cv2.imread(imagePath)
     image = skewCorrection(image)
     original = image.copy()
-    image = image[280:(image.shape[0]-150),100:(image.shape[1]-100)]
+    image = image[270:(image.shape[0]-190),140:(image.shape[1]-100)]
 
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     # blurred = cv2.GaussianBlur(gray, (5, 5), 0)
     edged = cv2.Canny(gray, 20, 70)
+    cv2.namedWindow("Original", cv2.WINDOW_NORMAL)
+    cv2.resizeWindow("Original", 900, 900)
+    cv2.namedWindow("Edged", cv2.WINDOW_NORMAL)
+    cv2.resizeWindow("Edged", 900, 900)
+    cv2.imshow("Original", original)
+    cv2.imshow("Edged", edged)
+    cv2.waitKey(0)
+    # show_images(['Original', 'Edged'], [original, edged])
 
     # Apply Hough transform on the blurred image.
     detected_circles = cv2.HoughCircles(edged, 
-                    cv2.HOUGH_GRADIENT, 1, 20, param1 = 70,
-                param2 = 15, minRadius = 10, maxRadius = 20)
+                    cv2.HOUGH_GRADIENT, 1, 15, param1 = 70,
+                param2 = 14, minRadius = 7, maxRadius = 13)
 
     circles = []
 
@@ -260,6 +285,16 @@ def bubble_sheet_autocorrect_2(imagePath, modelAnswer, wantToSaveImage, saveImag
     markedRight = []
 
     markedCircles = []
+
+
+    for circle in circles:
+        cv2.circle(image, (circle[0], circle[1]), circle[2], (0, 255, 0), 2)
+        # Draw a small circle (of radius 1) to show the center.
+        cv2.circle(image, (circle[0], circle[1]), 1, (255, 0, 0), 3)
+    cv2.namedWindow("Circles", cv2.WINDOW_NORMAL)
+    cv2.resizeWindow("Circles", 900, 900)
+    cv2.imshow("Circles", image)
+    cv2.waitKey(0)
 
     print("\n========================= Answers Reports ========================= ")
 
@@ -339,6 +374,10 @@ def bubble_sheet_autocorrect_2(imagePath, modelAnswer, wantToSaveImage, saveImag
     bubbles = answersLeft + answersMiddle + answersRight
     markedCircles = markedLeft + markedMiddle + markedRight
 
+    if len(bubbles) != NUM_QUESTIONS+10:
+        print("Please take another photo with better resolution.\nAborting...")
+        raise SystemExit(2)
+
     student_ID = extractStudentID(STUDENT_ID_LENGTH, bubbles[0:10])
 
     bubbles = bubbles[10:]
@@ -384,7 +423,7 @@ def bubble_sheet_autocorrect_2(imagePath, modelAnswer, wantToSaveImage, saveImag
     print("Result: {}/{}".format(correct, NUM_QUESTIONS))
     print("Marked Paper is saved in: ", str(saveImagesDir + '/' + student_ID + ".jpg"))
 
-    original[280:(original.shape[0]-150),100:(original.shape[1]-100)] = image
+    original[270:(original.shape[0]-190),140:(original.shape[1]-100)] = image
 
     if wantToSaveImage:
         if not os.path.exists(saveImagesDir):

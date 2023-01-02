@@ -36,8 +36,8 @@ h,w = edged.shape
 for c in cnts:
 	peri = cv2.arcLength(c, True)
 	approx = cv2.approxPolyDP(c, 0.02 * peri, True)
-	print(c,cv2.contourArea(approx), image.shape[0]*image.shape[1])
-	print(approx)
+	# print(c,cv2.contourArea(approx), image.shape[0]*image.shape[1])
+	# print(approx)
 	# cv2.drawContours(image, [approx], -1, (0, 255, 0), 2)
 	# cv2.imshow("Outline", image)
 	# cv2.waitKey(0)
@@ -57,7 +57,7 @@ cv2.destroyAllWindows()
 
 
 warped = four_point_transform(orig, screenCnt.reshape(4, 2) * ratio)
-cv2.imwrite('trans.jpg', warped)
+# cv2.imwrite('trans.jpg', warped)
 # warped = cv2.cvtColor(warped, cv2.COLOR_BGR2GRAY)
 # T = threshold_local(warped, 11, offset = 10, method = "gaussian")
 # warped = (warped > T).astype("uint8") * 255

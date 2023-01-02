@@ -4,6 +4,7 @@ import argparse
 import cv2
 import imutils
 from imutils import contours
+from skimage.morphology import skeletonize
 
 def is_noisy(image):
 
@@ -143,7 +144,7 @@ for c in cntsV:
 binaryV = binaryV[:,:,0]
 binaryV = binaryV.astype('uint8')
 
-lines = cv2.HoughLines(binaryV,1,np.pi/180,360)
+lines = cv2.HoughLines(binaryV,1,np.pi/180,260)
 linesV = []
 for line in lines:
     for rho,theta in line:
@@ -171,6 +172,10 @@ binary = np.float32(binary)
 binary = cv2.cvtColor(binary,cv2.COLOR_BGR2GRAY)
 binary[binary > 0.5] = 1
 binary[binary <= 0.5] = 0
+binary = 1-binary
+binary = skeletonize(binary)
+binary = 1-binary
+binary = binary.astype('float32')
 cv2.imshow("Hough_Window",img)
 cv2.imshow("Hough-Binary_Window",binary)
 cv2.waitKey(0)
@@ -192,7 +197,7 @@ for cell_points in cnts:
         # very top cell || very bottom cell || very left cell || very right cell || min cell height || min cell width
         if p1[0] < 20 or h-p3[1] < 20 or p1[1] < 20 or w-p4[0] < 10 or p2[1]-p1[1] < h*50/3532 or p3[0]-p2[0] < w*50/2638:
             continue
-        cell = img[p1[1]:p2[1],p1[0]:p4[0]]
+        cell = img[p1[1]-1:p2[1]+1,p1[0]-1:p4[0]+1]
         cells.append(cell)
-        cv2.imshow('result', cell)
-        cv2.waitKey(0)
+        # cv2.imshow('result', cell)
+        # cv2.waitKey(0)
