@@ -1,7 +1,0 @@
-1. Enhance the image to make it more cleared. (Detection + Solution)
-2. Table Mask (New Image) -> To extract the table from the whole image and ignore the white spaces (borders) and any unneeded texts
-3. Column Mask (New Images) -> To extract every column in seperate image.
-4. Flip all the column images
-5. Column Mask again (New Images) -> Every cell in a seperate image (rotated cells)
-6. Flip all the cells images -> to get the well-oriented cells
-7. OCR -> To get the data in every cell and save it
